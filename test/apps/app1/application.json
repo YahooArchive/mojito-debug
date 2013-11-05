@@ -1,0 +1,30 @@
+[{
+    "settings": ["master"],
+    "actionTimeout": 0,
+    "specs": {
+        "main": {
+            "type": "HTMLFrameMojit",
+            "config": {
+                "deploy": true,
+                "child": {
+                    "type": "Main"
+                }
+            }
+        },
+        "debug": {
+            "type": "Debug",
+            "config": {
+                "hooks": {
+                    "generic-hook": {
+                        "title": "Generic Hook"
+                    },
+                    "mojit-hook": {
+                        "title": "Mojit Hook",
+                        "description": "This hook was rendered using a mojit.",
+                        "type": "MojitHook"
+                    }
+                }
+            }
+        }
+    }
+}]

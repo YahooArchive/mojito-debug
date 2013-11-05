@@ -1,0 +1,13 @@
+{
+    "name": "app1",
+    "description": "Sample debugger app 1.",
+    "author": {
+        "name": "Albert Jimenez",
+        "email": "jimenez@yahoo-inc.com"
+    },
+    "dependencies": {
+        "mojito-debug": "*",
+        "mojito": "0.7.x",
+        "mojito-cli": "~0.0.5"
+    }
+}

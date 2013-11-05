@@ -1,0 +1,21 @@
+[{
+    "settings": ["master"],
+
+    "main": {
+        "verbs": ["get"],
+        "path": "/",
+        "call": "main.index"
+    },
+
+    "debugger": {
+        "verbs": ["get"],
+        "path": "/debug",
+        "call": "debug.index"
+    },
+
+    "test": {
+        "verbs": ["get"],
+        "path": "/test",
+        "call": "@Test.index"
+    }
+}]

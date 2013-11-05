@@ -1,0 +1,25 @@
+[{
+    "settings": [ "master" ],
+    "config": {
+        "assets": {
+            "top": {
+                "css": [
+                    "/static/Debug/assets/debug.css",
+                    "/static/Debug/assets/hook-container.css"
+                ]
+            }
+        },
+        "hooks": {
+           "help": {
+                "title": "Help",
+                "description": "Displays the list of available debug module flags and aliases.",
+                "type": "Help"
+            },
+
+            "log": {
+                "title": "Log",
+                "description": "Displays logging information."
+            }
+        }
+    }
+}]
