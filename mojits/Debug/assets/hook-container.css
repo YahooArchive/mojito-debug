@@ -1,7 +1,7 @@
 .hook-container {
     font: 13px/1.231 arial,helvetica,clean,sans-serif;
     box-shadow: 2px 4px 6px #555;
-    border-radius: 5px 5px 5px 5px;
+    border-radius: 5px;
     border: 1px solid #999;
     margin: 5px 5px 15px 5px;
 }
@@ -51,36 +51,36 @@
     margin-top: -1px;
 }
 
-.hook-container > .header > .minimize.button {
-    margin-right: 10;
+.hook-container.maximized > .header > .minimize.button {
+    margin-right: 10px;
     font-size: 23px;
     margin-top: -5px;
     display:block;
 }
 
+.hook-container.maximized > .header > .maximize.button {
+    display: none;
+}
+
+.hook-container > .header > .minimize.button {
+    display: none;
+}
+
 .hook-container > .header > .maximize.button {
-    display: none;
-}
-
-.hook-container.minimized > .header > .minimize.button {
-    display: none;
-}
-
-.hook-container.minimized > .header > .maximize.button {
-    margin-right: 10;
-    font-size: 14px;
-    margin-top: 2px;
+    margin-right: 10px;
+    font-size: 12px;
+    margin-top: 3px;
     display: block;
 }
 
-.hook-container > .content {
+.hook-container > .content-wrapper {
+    overflow: hidden;
+    clear: both;
+}
+
+.hook-container > .content-wrapper > .content {
     background-color: #fff;
     padding: 3px;
     overflow-x: auto;
-    transition: height 1s;
+    border-radius: 5px;
 }
-
-.hook-container.minimized > .content {
-    width: 0;
-}
-

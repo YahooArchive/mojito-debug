@@ -1,6 +1,11 @@
 [{
     "settings": ["master"],
     "actionTimeout": 0,
+    "yui": {
+        "config": {
+            "filter": "debug"
+        }
+    },
     "specs": {
         "main": {
             "type": "HTMLFrameMojit",

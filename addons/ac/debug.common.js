@@ -9,7 +9,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
     function DebugAddon(command, adapter, ac) {
         var self = this,
             root = isBrowser ? window.top : adapter.req,
-            debugParam = ac.params.url('debug');
+            debugParam;
 
         // Ensure debugger is a singleton per request.
         if (!root.globals) {
@@ -21,8 +21,12 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             return root.globals.debug;
         }
 
+        this.mode = ac.params.params.url.hasOwnProperty('debug') ? '' :
+                    ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
+                    ac.params.params.url.hasOwnProperty('debug.json') ? 'json' : null;
+
         // Do nothing if the debug parameter is not present.
-        if (!debugParam) {
+        if (this.mode === null) {
             return;
         }
 
@@ -31,9 +35,25 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             self.config = command.instance.config;
             self.config.hooks = self.config.hooks || {};
 
+            // Make sure each hook has a title and description.
+            Y.Object.each(self.config.hooks, function (hookConfig, hookName) {
+                if (!hookConfig.title) {
+                    hookConfig.title = hookName;
+                }
+                if (!hookConfig.description) {
+                    hookConfig.description = hookConfig.title + '.';
+                }
+            });
+
+            // Determine all the active hooks specified in the debug parameter.
+            // If no hook specified, use 'help' by default.
+            debugParam = ac.params.url('debug' + (this.mode ? '.' + this.mode : '')) || 'help';
             Y.Array.each(debugParam.split(/\s*,\s*/), function (hook) {
+                if (!hook) {
+                    return;
+                }
                 self.hooks[hook] = {
-                    config: self.config.hooks[hook],
+                    config: self.config.hooks[hook] || {},
                     debugData: {}
                 };
             });
@@ -49,7 +69,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             // If this is the browser, render this debug hook
             if (isBrowser) {
                 self._render(function () {
-                    //self._update();
+                    //self._binder.update();
                 }, hook);
             }
         };
@@ -71,7 +91,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             });
 
             if (Y.Object.isEmpty(hooksToRender)) {
-                return;
+                return done(self.hooks, {});
             }
 
             ac.composite.execute({
@@ -86,24 +106,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 done(self.hooks, meta);
             });
         };
-
-        if (isBrowser) {
-            self.hookContainers = {};
-            self._update = function () {
-                Y.Object.each(self.hooks, function (hook, hookName) {
-                    if (!hook.needsUpdate) {
-                        return;
-                    }
-
-                    if (!self.hookContainers[hookName]) {
-                        self.hookContainers[hookName] = new Y.mojito.debug.HookContainer(hookName, hook);
-                        Y.one('#debugger').append(self.hookContainers[hookName]);
-                    } else {
-                        self.hookContainers[hookName].updateContent(hook);
-                    }
-                });
-            };
-        }
     }
 
     DebugAddon.prototype = {
@@ -120,8 +122,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
     requires: [
         'mojito',
         'mojito-composite-addon',
-        'mojito-params-addon',
-        'mojito-debug-hook-container',
-        'mojito-debug-generic-hook'
+        'mojito-params-addon'
     ]
 });

@@ -1,30 +1,47 @@
 YUI.add('mojito-debug-hook-container', function (Y) {
     'use strict';
     var HookContainer = function (hookName, hook) {
-        var title = hook.title || hookName,
-            description = hook.description || hook.title,
-            container = Y.Node.create('<div/>').addClass('hook-container').set('id', hookName + '-hook'),
-            header = Y.Node.create('<div/>').addClass('header'),
-            titleNode = Y.Node.create('<span/>').addClass('title').set('text', title),
+        var title = hook.config.title,
+            description = hook.config.description,
+            container = Y.Node.create('<div/>').addClass('maximized hook-container').set('id', hookName + '-hook'),
+            header = Y.Node.create('<div/>').addClass('header no-select'),
+            titleNode = Y.Node.create('<span/>').addClass('title').set('text', title).set('title', description),
             closeButton = Y.Node.create('<span/>').addClass('close button').set('text', 'x'),
             minimize = Y.Node.create('<span/>').addClass('minimize button').set('innerHTML', '&ndash;'),
             maximize = Y.Node.create('<span/>').addClass('maximize button').set('innerHTML', '&#9634;'),
-            content = Y.Node.create('<div/>').addClass('content');
+            content = Y.Node.create('<div/>').addClass('content'),
+            contentWrapper = Y.Node.create('<div/>').addClass('content-wrapper');
 
-        closeButton.on('click', this.close);
-        minimize.on('click', this.toggle);
-        maximize.on('click', this.toggle);
+        this.opened = true;
+        this.maximized = true;
+        this.content = content;
+        this.contentWrapper = contentWrapper;
+        this.hook = hookName;
+
+        closeButton.on('click', function () {
+            container.close(true);
+        });
+
+        minimize.on('click', function () {
+            container.toggle();
+        });
+
+        maximize.on('click', function () {
+            container.toggle();
+        });
 
         header.append(titleNode)
               .append(closeButton)
               .append(minimize)
               .append(maximize);
 
-        container.append(header)
-                 .append(content);
+        contentWrapper.append(content);
 
+        container.append(header)
+                 .append(contentWrapper);
+
+        Y.mix(container, this);
         Y.mix(container, HookContainer.prototype);
-        container.content = content;
 
         if (hook) {
             container.update(hook);
@@ -40,18 +57,59 @@ YUI.add('mojito-debug-hook-container', function (Y) {
             this.content.append(new Y.mojito.debug.GenericHook(hook.debugData));
         },
 
-        close: function () {
-            this.remove();
+        close: function (anim) {
+            Y.Debug.binder.removeHook(this.hook);
+            if (anim) {
+                this.hide({duration: 0.2});
+            } else {
+                this.setStyle('opacity', 0)
+                    .setStyle('display', 'none')
+                    .set('hidden', true);
+            }
+            this.opened = false;
         },
 
-        toggle: function () {
-            this.toggleClass('minimized');
+        open: function (anim) {
+            Y.Debug.binder.addHook(this.hook);
+            if (anim) {
+                this.show({duration: 0.2});
+            } else {
+                this.setStyle('opacity', 1)
+                    .setStyle('display', 'block')
+                    .set('hidden', false);
+            }
+            this.opened = true;
+        },
+
+        toggle: function (state) {
+            if (!state) {
+                this.maximized = !this.maximized;
+            } else if (state === 'maximize') {
+                this.maximized = true;
+            } else {
+                this.maximized = false;
+            }
+
+            var contentWrapper = this.contentWrapper;
+
+            if (this.maximized) {
+                this.addClass('maximized');
+            } else {
+                this.removeClass('maximized');
+            }
+
+            contentWrapper.transition({
+                easing: 'ease-out',
+                duration: 0.3,
+                height:  this.maximized ? contentWrapper.get("scrollHeight") + "px" : "0px"
+            });
         }
     };
 
     Y.namespace('mojito.debug').HookContainer = HookContainer;
 }, '0.0.1', {
     requires: [
-        'mojito-debug-generic-hook'
+        'mojito-debug-generic-hook',
+        'transition'
     ]
 });
