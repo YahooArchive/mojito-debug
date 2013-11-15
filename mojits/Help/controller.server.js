@@ -4,8 +4,6 @@ YUI.add('help-hook-controller', function (Y, NAME) {
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
             ac.assets.addCss('./index.css');
-            var debugData = ac.params.getFromBody('debugData');
-            ac.data.set('debugData', debugData);
             ac.done();
         }
     };

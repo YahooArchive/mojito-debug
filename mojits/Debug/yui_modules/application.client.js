@@ -20,9 +20,9 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
 
             if (Y.Debug.mode !== 'hide') {
                 appWindow.onload = function () {
-                    appIframe.setStyle('height', appWindow.document.body.scrollHeight + "px");
+                    this.open();
                     callback();
-                };
+                }.bind(this);
             } else {
                 callback();
             }
@@ -53,11 +53,24 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 this.opened = false;
             }
 
+            // Set iframe height to auto such that the document inside returns the correct scrollheight
+            if (this.opened) {
+                this.appIframe.setStyle('height', 'auto');
+            }
+
             this.appIframe.transition({
                 easing: 'ease-out',
                 duration: anim ? 0.3 : 0,
                 height: this.opened ? this.appWindow.document.body.scrollHeight + "px" : '0px'
             });
+
+            if (this.opened) {
+                this.timeout = setInterval(function () {
+                    this.appIframe.setStyle('height', this.appWindow.document.body.scrollHeight + "px");
+                }.bind(this), 200);
+            } else {
+                clearTimeout(this.timeout);
+            }
         }
     };
 

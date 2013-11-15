@@ -6,7 +6,7 @@ YUI.add('mojito-debug-generic-hook', function (Y) {
         if (!debugData.hasOwnProperty('content')) {
             content.set('text', '[Empty]');
         } else if (Y.Lang.isObject(debugData.content)) {
-            content.append(new Y.Debug.JSONTree(Y.Debug.clone(debugData.content, null), null).get());
+            content.append(new Y.mojito.debug.JSONTree(Y.mojito.debug.Utils.acyclicClone(debugData.content), null).get());
         } else {
             content = Y.Node.create(debugData.content);
         }
@@ -17,6 +17,7 @@ YUI.add('mojito-debug-generic-hook', function (Y) {
     Y.namespace('mojito.debug').GenericHook = GenericHook;
 }, '0.0.1', {
     requires: [
-        'debug-jsonTree'
+        'mojito-debug-utils',
+        'mojito-debug-json-tree'
     ]
 });

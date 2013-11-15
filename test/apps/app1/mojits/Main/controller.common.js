@@ -4,7 +4,12 @@ YUI.add('main-controller', function (Y, NAME) {
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
             ac.debug.on('generic-hook', function (debugData) {
-                debugData.hook = 'generic-hook';
+                debugData.content = {
+                    hook: {
+                        name: 'generic-hook',
+                        description: 'Generic Hook'
+                    }
+                };
             });
 
             ac.debug.on('mojit-hook', function (debugData) {

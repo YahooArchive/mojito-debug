@@ -1,0 +1,9 @@
+[{
+    "settings": ["master"],
+
+    "debugger": {
+        "verbs": ["get"],
+        "path": "/debug*",
+        "call": "debug.index"
+    }
+}]

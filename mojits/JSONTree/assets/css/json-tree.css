@@ -1,0 +1,45 @@
+div.json_tree .quantity {
+    color: grey;
+    font-weight: normal;
+}
+
+div.json_tree .value {
+    color: darkblue;
+}
+
+div.json_tree .key {
+    color: black;
+    white-space: nowrap;
+}
+
+div.json_tree .tree {
+    clear: both;
+    margin-top: 0px;
+    margin-right: 5px;
+}
+
+div.json_tree .text_button {
+    cursor: pointer;
+    float: left;
+    margin-left: 6px;
+    margin-top: 5px;
+}
+
+div.json_tree .filter {
+    margin-left: 6px;
+    margin-top: 2px;
+}
+
+div.json_tree .text {
+    border: 1px solid black;
+    float: left;
+    margin-left: -1px;
+    height: 240px;
+    width: 170px;
+    resize: both;
+    background-color: white;
+    overflow: auto;
+    font-family: monospace;
+    z-index: 2;
+    margin-top: 5px;
+}

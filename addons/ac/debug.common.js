@@ -32,36 +32,50 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
         if (!isBrowser) {
             self.hooks = {};
-            self.config = command.instance.config;
-            self.config.hooks = self.config.hooks || {};
-
-            // Make sure each hook has a title and description.
-            Y.Object.each(self.config.hooks, function (hookConfig, hookName) {
-                if (!hookConfig.title) {
-                    hookConfig.title = hookName;
+            // Get config, make sure the help hook appears first.
+            self.config = {
+                hooks: {
+                    help: command.instance.config.hooks.help
                 }
-                if (!hookConfig.description) {
-                    hookConfig.description = hookConfig.title + '.';
+            };
+            Y.mix(self.config, command.instance.config, false, null, 0, true);
+
+            // Add configuration hooks into 'all' alias.
+            Y.Object.each(self.config.hooks, function (hookConfig, hook) {
+                if (self.config.aliases.all.indexOf(hook) === -1) {
+                    self.config.aliases.all.push(hook);
                 }
             });
 
             // Determine all the active hooks specified in the debug parameter.
-            // If no hook specified, use 'help' by default.
-            debugParam = ac.params.url('debug' + (this.mode ? '.' + this.mode : '')) || 'help';
-            Y.Array.each(debugParam.split(/\s*,\s*/), function (hook) {
+            // If no hook specified, use 'all' by default.
+            debugParam = ac.params.url('debug' + (this.mode ? '.' + this.mode : '')) || 'all';
+            self.urlHooks = debugParam.split(/\s*,\s*/);
+            Y.Array.each(self.urlHooks, function (hook) {
                 if (!hook) {
                     return;
                 }
-                self.hooks[hook] = {
-                    config: self.config.hooks[hook] || {},
-                    debugData: {}
-                };
+
+                if (hook === 'all') {
+                    self.allHooksEnabled = true;
+                } else if (self.config.aliases.all.indexOf(hook) === -1) {
+                    self.config.aliases.all.push(hook);
+                }
+
+                Y.Array.each(self.config.aliases[hook] || [hook], function (hook) {
+                    self._initHook(hook);
+                });
             });
         }
 
         self.on = function (hook, callback) {
             if (!self.hooks[hook]) {
-                return;
+                if (self.allHooksEnabled) {
+                    self.config.aliases.all.push(hook);
+                    self._initHook(hook);
+                } else {
+                    return;
+                }
             }
 
             callback(self.hooks[hook].debugData);
@@ -98,11 +112,10 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 children: hooksToRender
             }, function (renderedHooks, meta) {
                 Y.Object.each(renderedHooks, function (content, hook) {
-                    self.hooks[hook].debugData = {
-                        content: content
-                    };
+                    self.hooks[hook].debugData.content = content;
                     self.hooks[hook].needsUpdate = true;
                 });
+
                 done(self.hooks, meta);
             });
         };
@@ -110,7 +123,28 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
     DebugAddon.prototype = {
         namespace: 'debug',
-        on: NOOP
+        on: NOOP,
+        _initHook: function (hook) {
+            var self = this;
+            if (self.hooks[hook]) {
+                return;
+            }
+            // Make sure the config includes all hooks mentioned in the debug param.
+            self.config.hooks[hook] = self.config.hooks[hook] || {};
+
+            self.hooks[hook] = {
+                config: self.config.hooks[hook],
+                debugData: {}
+            };
+
+            // Make sure each hook has a title and description.
+            if (!self.config.hooks[hook].title) {
+                self.config.hooks[hook].title = hook.substring(0, 1).toUpperCase() + hook.substring(1);
+            }
+            if (!self.config.hooks[hook].description) {
+                self.config.hooks[hook].description = self.config.hooks[hook].title + '.';
+            }
+        }
     };
 
     Y.namespace('mojito.addons.ac').debug = DebugAddon;

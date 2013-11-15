@@ -19,7 +19,11 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         this.hook = hookName;
 
         closeButton.on('click', function () {
-            container.close(true);
+            Y.Debug.binder.removeHook(hookName, true);
+        });
+
+        titleNode.on('click', function () {
+            container.toggle();
         });
 
         minimize.on('click', function () {
@@ -58,7 +62,6 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         },
 
         close: function (anim) {
-            Y.Debug.binder.removeHook(this.hook);
             if (anim) {
                 this.hide({duration: 0.2});
             } else {
@@ -70,7 +73,6 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         },
 
         open: function (anim) {
-            Y.Debug.binder.addHook(this.hook);
             if (anim) {
                 this.show({duration: 0.2});
             } else {
@@ -82,6 +84,8 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         },
 
         toggle: function (state) {
+            var prevState = this.maximized,
+                contentWrapper = this.contentWrapper;
             if (!state) {
                 this.maximized = !this.maximized;
             } else if (state === 'maximize') {
@@ -90,7 +94,9 @@ YUI.add('mojito-debug-hook-container', function (Y) {
                 this.maximized = false;
             }
 
-            var contentWrapper = this.contentWrapper;
+            if (prevState === this.maximized) {
+                return;
+            }
 
             if (this.maximized) {
                 this.addClass('maximized');
@@ -98,11 +104,21 @@ YUI.add('mojito-debug-hook-container', function (Y) {
                 this.removeClass('maximized');
             }
 
+            // need to remove auto from height else it will close immediately
+            if (!this.maximized) {
+                contentWrapper.setStyle("height", contentWrapper.get("scrollHeight") + "px");
+            }
+
             contentWrapper.transition({
                 easing: 'ease-out',
                 duration: 0.3,
                 height:  this.maximized ? contentWrapper.get("scrollHeight") + "px" : "0px"
-            });
+            }, function () {
+                // need to set height to auto in case content inside change size
+                if (this.maximized) {
+                    contentWrapper.setStyle("height", "auto");
+                }
+            }.bind(this));
         }
     };
 

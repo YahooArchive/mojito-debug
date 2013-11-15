@@ -1,4 +1,4 @@
-/*jslint nomen: true, regexp: true, browser: true */
+/*jslint nomen: true, regexp: true, browser: true, plusplus: true */
 YUI.add('mojito-debug-binder', function (Y, NAME) {
     'use strict';
 
@@ -37,49 +37,62 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         },
 
         initHistory: function () {
-            var self = this;
-            window.H = self.history = new Y.History({
-                initialState: {
-                    hooks: Object.keys(Y.Debug.hooks),
-                    mode: Y.Debug.mode
-                }
+            var self = this,
+                initialState = {
+                    hooks: self.urlHooks,
+                    mode: self.mode
+                };
+
+            self.history = new Y.History({
+                initialState: initialState
             });
 
-            self.history.once('change', function (e) {
+            self.history.on('change', function (e) {
                 if (Y.Object.isEmpty(e.newVal)) {
-                    e.newVal = e.prevVal;
+                    e.newVal = initialState;
                     e.halt(true);
                     return;
                 }
             });
 
             self.history.after('change', function (e) {
-                var hooks = e.newVal.hooks,
+                var urlHooks = e.newVal.hooks,
+                    currentHooks = [],
                     mode = e.newVal.mode,
-                    hookContainers = Y.Debug.hookContainers;
+                    reload,
+                    hookContainers = self.hookContainers;
 
                 if (e.src !== 'popstate') {
                     return;
                 }
 
+                // Determine all the hooks associated with the urlHooks
+                Y.Array.each(urlHooks, function (urlHook) {
+                    Array.prototype.push.apply(currentHooks, self.config.aliases[urlHook] || [urlHook]);
+                });
+
                 self.changeMode(mode);
 
                 // Reload the page if any hookContainer to be displayed is missing
-                Y.some(hooks, function (hook) {
+                reload = Y.some(currentHooks, function (hook) {
                     if (!hookContainers[hook]) {
-                        window.location.reload();
-                        hooks = [];
                         return true;
                     }
                 });
 
-                Y.Array.each(hooks, function (hook) {
+                if (reload) {
+                    window.location.reload();
+                    return;
+                }
+
+                // Place hooks in their proper order.
+                Y.Array.each(currentHooks, function (hook) {
                     var hookContainer = hookContainers[hook];
                     hookContainer.ancestor().append(hookContainer);
                 });
 
                 Y.Object.each(hookContainers, function (hookContainer, hook) {
-                    if (hooks.indexOf(hook) === -1) {
+                    if (currentHooks.indexOf(hook) === -1) {
                         hookContainer.close();
                     } else {
                         hookContainer.open();
@@ -88,8 +101,8 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             });
 
             if (/(\?|&)debug(\.[^&=]+)?=?($|&)/.test(window.location.href)) {
-                this.history.replaceValue('hooks', ['help'], {
-                    url: window.location.href.replace(/(\?|&)(debug(?:\.[^&=]+)?)(=)?($|&)/, '$1$2=help$4')
+                this.history.replaceValue('hooks', ['all'], {
+                    url: window.location.href.replace(/(\?|&)(debug(?:\.[^&=]+)?)(=)?($|&)/, '$1$2=all$4')
                 });
             }
         },
@@ -119,18 +132,21 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             // Allow client side YUI modules to use the debug addon through Y.Debug
             Y.Debug = window.top.DEBUGGER = new Y.mojito.addons.ac.debug(command, adapter, ac);
-            Y.Debug.mode = mojitProxy.data.get('mode');
-            Y.Debug.hooks = mojitProxy.data.get('hooks');
-            Y.Debug.hookContainers = {};
             Y.Debug.binder = this;
+
+            this.mode = mojitProxy.data.get('mode');
+            this.hooks = mojitProxy.data.get('hooks');
+            this.urlHooks = mojitProxy.data.get('urlHooks');
+            this.config = mojitProxy.data.get('config');
+            this.hookContainers = {};
 
             this.updateDebugger();
         },
 
         updateDebugger: function () {
             var self = this,
-                hookContainers = Y.Debug.hookContainers,
-                hooks = Y.Debug.hooks;
+                hookContainers = self.hookContainers,
+                hooks = self.hooks;
 
             Y.Object.each(hooks, function (hook, hookName) {
                 if (!hook.needsUpdate) {
@@ -147,7 +163,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         },
 
         changeMode: function (mode) {
-            if (Y.Debug.mode === mode) {
+            if (this.mode === mode) {
                 return;
             }
 
@@ -156,7 +172,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             if (mode === 'hide') {
                 this.app.close(true);
-            } else if (!mode && Y.Debug.mode === 'hide') {
+            } else if (!mode && this.mode === 'hide') {
                 this.app.open(true);
             } else if (mode === 'json') {
                 location.href = newUrl;
@@ -172,68 +188,112 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 });
             }
 
-            Y.Debug.mode = mode;
+            this.mode = mode;
         },
 
         changeUrlMode: function (url, mode) {
             return url.replace(/(\?|&)(debug)(\.(json|hide))?/, '$1debug' + (mode ? '.' + mode : ''));
         },
 
-        addHook: function (hook) {
-            this._changeHook(hook, true);
+        addHook: function (hook, anim) {
+            return this._changeHook(hook, 'add', anim);
         },
 
-        removeHook: function (hook) {
-            this._changeHook(hook, false);
+        removeHook: function (hook, anim) {
+            return this._changeHook(hook, 'remove', anim);
         },
 
-        _changeHook: function (hook, addHook) {
-            var hooks = this.history.get('hooks'),
-                hookContainer = Y.Debug.hookContainers[hook],
-                hookIsPresent = hooks.indexOf(hook) !== -1,
-                newUrl;
+        _changeHook: function (hook, action, anim) {
+            var self = this,
+                urlHooks = self.history.get('hooks'),
+                currentHooks = [],
+                newHooks = [],
+                addHook = (action === 'add'),
+                hookIsPresent,
+                newUrl,
+                reload;
+
+            // Determine all the hooks associated with the urlHooks
+            Y.Array.each(urlHooks, function (urlHook) {
+                Array.prototype.push.apply(currentHooks, self.config.aliases[urlHook] || [urlHook]);
+            });
+            hookIsPresent = currentHooks.indexOf(hook) !== -1 || urlHooks.indexOf(hook) !== -1;
 
             if ((addHook && hookIsPresent) || (!addHook && !hookIsPresent)) {
                 return;
             }
 
-            newUrl = this._changeUrlHook(location.href, hook, addHook);
+            newUrl = this._changeUrlHook(location.href, hook, action);
 
-            if (addHook && !hookContainer) {
-                location.href = newUrl;
-                return;
-            }
-
-            hooks = hooks.slice(0);
             if (addHook) {
-                hooks.push(hook);
-                // Move container to the end.
-                hookContainer.ancestor().append(hookContainer);
+                // Make sure all required hooks are present.
+                // Else the page must be refreshed.
+                Y.Array.each(newUrl.hooks, function (urlHook) {
+                    Array.prototype.push.apply(newHooks, self.config.aliases[urlHook] || [urlHook]);
+                });
+
+                reload = Y.some(newHooks, function (hook) {
+                    if (!self.hookContainers[hook]) {
+                        return true;
+                    }
+                });
+                if (reload) {
+                    location.href = newUrl.url;
+                    return;
+                }
+
+                // Move hook containers to the end and open if necessary
+                Y.Array.each(newHooks, function (urlHook) {
+                    Y.Array.each(self.config.aliases[urlHook] || [urlHook], function (hook) {
+                        if (currentHooks.indexOf(hook) === -1) {
+                            var hookContainer = self.hookContainers[hook];
+                            hookContainer.ancestor().append(hookContainer);
+                            hookContainer.open(anim);
+                        }
+                    });
+                });
             } else {
-                hooks.splice(hooks.indexOf(hook), 1);
+                // Close hook containers if necessary.
+                Y.Array.each(currentHooks, function (hook) {
+                    if (newUrl.hooks.indexOf(hook) === -1) {
+                        var hookContainer = self.hookContainers[hook];
+                        hookContainer.close(anim);
+                    }
+                });
             }
 
             this.history.add({
-                hooks: hooks,
+                hooks: newUrl.hooks,
                 mode: this.history.get('mode')
             }, {
-                url: newUrl
+                url: newUrl.url
             });
+
+            return newUrl;
         },
 
         addUrlHook: function (url, hook) {
-            this._changeHookInUrl(url, hook, true);
+            return this._changeHookInUrl(url, hook, 'add');
         },
 
         removeUrlHook: function (url, hook) {
-            this._changeHookInUrl(url, hook, false);
+            return this._changeHookInUrl(url, hook, 'remove');
         },
 
-        _changeUrlHook: function (url, hook, add) {
-            var match = url.match(/(\?|&)debug(\.(json|hide))?(=[^&]*)?/),
+        _changeUrlHook: function (url, hook, action) {
+            var self = this,
+                match = url.match(/(\?|&)debug(\.(json|hide))?(=[^&]*)?/),
+                addHook = action === 'add',
                 debugParam = match && match[0],
                 debugParamParts,
-                hooks,
+                urlHooks,
+                urlHook,
+                index,
+                i = 0,
+                j = 0,
+                aliases = self.config.aliases,
+                aliasHook,
+                aliasHooks,
                 newDebugParam;
 
             if (!debugParam) {
@@ -242,17 +302,48 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             debugParamParts = debugParam.split('=');
 
-            hooks = debugParamParts[1] ? debugParamParts[1].split(',') : [];
+            urlHooks = debugParamParts[1] ? debugParamParts[1].split(',') : [];
 
-            if (!add) {
-                hooks.splice(hooks.indexOf(hook), 1);
+            if (!addHook) {
+                // Expand any alias that contains this hook
+                while (i < urlHooks.length) {
+                    aliasHooks = aliases[urlHooks[i]];
+                    if (aliasHooks && aliasHooks.indexOf(hook) !== -1) {
+                        aliasHook = urlHooks.splice(i, 1)[0];
+                        for (j = 0; j < aliases[aliasHook].length; j++) {
+                            urlHook = aliases[aliasHook][j];
+                            if (urlHooks.indexOf(urlHook) === -1) {
+                                urlHooks.splice(i, 0, urlHook);
+                                i++;
+                            }
+                        }
+                    } else {
+                        i++;
+                    }
+                }
+
+                // Remove hook
+                index = urlHooks.indexOf(hook);
+                if (index !== -1) {
+                    urlHooks.splice(index, 1);
+                }
             } else {
-                hooks.push(hook);
+                // Remove any associated hooks if this hook is an alias.
+                Y.Array.each(aliases[hook], function (hook) {
+                    var index = urlHooks.indexOf(hook);
+                    if (index !== -1) {
+                        urlHooks.splice(index, 1);
+                    }
+                });
+                urlHooks.push(hook);
             }
 
-            newDebugParam = debugParamParts[0] + '=' + hooks.join(',');
+            newDebugParam = debugParamParts[0] + '=' + urlHooks.join(',');
 
-            return url.replace(debugParam, newDebugParam);
+            return {
+                url: url.replace(debugParam, newDebugParam),
+                hooks: urlHooks
+            };
         },
 
         getUrlParams: function (query) {

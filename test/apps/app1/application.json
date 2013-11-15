@@ -2,10 +2,14 @@
     "settings": ["master"],
     "actionTimeout": 0,
     "yui": {
-        "config": {
+        "config-disabled": {
             "filter": "debug"
         }
     },
+    "middleware": [
+        "./node_modules/mojito-debug/middleware/debug.js"
+    ],
+
     "specs": {
         "main": {
             "type": "HTMLFrameMojit",
@@ -17,7 +21,6 @@
             }
         },
         "debug": {
-            "type": "Debug",
             "config": {
                 "hooks": {
                     "generic-hook": {

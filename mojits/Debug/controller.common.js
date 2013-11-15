@@ -49,7 +49,8 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                             top: {
                                 css: [
                                     '/static/Debug/assets/debug.css',
-                                    '/static/Debug/assets/hook-container.css'
+                                    '/static/Debug/assets/hook-container.css',
+                                    '/static/JSONTree/assets/css/json-tree.css'
                                 ]
                             }
                         }
@@ -62,15 +63,13 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         debug: function (ac) {
-            ac.debug.on('help', function (debugData) {
-                debugData.allHooks = ac.debug.config.hooks;
-            });
-
             ac.debug._render(function (hooks, hooksMeta) {
 
                 ac.data.set('app', ac.debug.appHtml);
                 ac.data.set('hooks', hooks);
+                ac.data.set('urlHooks', ac.debug.urlHooks);
                 ac.data.set('mode', ac.debug.mode);
+                ac.data.set('config', ac.debug.config);
 
                 ac.done({}, hooksMeta);
             });

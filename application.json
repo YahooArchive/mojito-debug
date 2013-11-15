@@ -1,0 +1,27 @@
+[{
+    "settings": [ "master" ],
+
+    "specs": {
+        "debug": {
+            "enabled": true,
+            "type": "Debug",
+            "config": {
+                "hooks": {
+                   "help": {
+                        "title": "Help",
+                        "description": "Displays the list of available debug module flags and aliases.",
+                        "type": "Help"
+                    },
+
+                    "log": {
+                        "title": "Log",
+                        "description": "Displays logging information."
+                    }
+                },
+                "aliases": {
+                    "all": []
+                }
+            }
+        }
+    }
+}]

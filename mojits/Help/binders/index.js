@@ -1,28 +1,32 @@
+/*jslint plusplus: true */
 YUI.add('mojito-debug-help-binder', function (Y, NAME) {
     'use strict';
 
     Y.namespace('mojito.binders')[NAME] = {
-        init: function (mojitProxy) {
-            this.allHooks = mojitProxy.data.get('debugData').allHooks;
-        },
 
         bind: function (node) {
             var self = this,
                 mode = Y.Debug.binder.history.get('mode'),
-                hooks = Y.Debug.binder.history.get('hooks');
+                hooks = Y.Debug.binder.history.get('hooks'),
+                config = Y.Debug.binder.config;
 
-            self.renderHelp(node, mode, hooks, self.allHooks);
+            self.renderHelp(node, mode, hooks, config);
 
             Y.Debug.binder.history.after('change', function (e) {
                 mode = e.newVal.mode;
                 hooks = e.newVal.hooks;
 
-                self.renderHelp(node, mode, hooks, self.allHooks);
+                if (!Y.Object.isEmpty(hooks)) {
+                    self.renderHelp(node, mode, hooks, config);
+                }
             });
         },
 
-        renderHelp: function (node, mode, hooks, allHooks) {
+        renderHelp: function (node, mode, hooks, config) {
             var self = this,
+                i = 0,
+                j = 0,
+                aliasHook,
                 sectionsNode = node.one('.sections'),
                 sections = {
                     Modes: {
@@ -37,16 +41,34 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
                             description: 'Only show the JSON data of the debug hooks.'
                         }
                     },
-                    Hooks: {}
+                    Hooks: {},
+                    Aliases: {}
                 };
 
             sectionsNode.set('innerHTML', '');
 
-            Y.Object.each(allHooks, function (hookConfig, hookName) {
+            // Expand aliases
+            while (i < hooks.length) {
+                for (j = 0; j < config.aliases[hooks[i]]; j++) {
+                    hooks.unshift(config.aliases[hooks[i]][j]);
+                    i++;
+                }
+                i++;
+            }
+
+            Y.Object.each(config.hooks, function (hookConfig, hookName) {
                 sections.Hooks[hookConfig.title] = {
                     hook: hookName,
                     active: hooks.indexOf(hookName) !== -1,
                     description: hookConfig.description
+                };
+            });
+
+            Y.Object.each(config.aliases, function (aliasHooks, alias) {
+                sections.Aliases[alias[0].toUpperCase() + alias.substring(1)] = {
+                    hook: alias,
+                    active: hooks.indexOf(alias) !== -1,
+                    description: 'Opens: ' + aliasHooks.join(', ')
                 };
             });
 
@@ -60,7 +82,7 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
             var self = this,
                 itemNode = Y.Node.create('<ul/>').addClass('item'),
                 closeButton = Y.Node.create('<li/>').addClass('close button').set('text', '(X)'),
-                titleNode = Y.Node.create('<li/>').addClass('title link').set('text', title + ':'),
+                titleNode = Y.Node.create('<li/>').addClass('title link').set('text', title + ':').set('title', item.hook || item.mode),
                 description = Y.Node.create('<li/>').addClass('description').set('text', item.description);
 
             if (item.active) {
@@ -69,18 +91,13 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
 
             if (item.hook) {
                 closeButton.on('click', function () {
-                    var hookContainer = Y.Debug.hookContainers[item.hook];
-                    //itemNode.removeClass('active');
-                    hookContainer.close();
+                    Y.Debug.binder.removeHook(item.hook, 'anim');
                 });
 
                 titleNode.on('click', function () {
-                    var hookContainer = Y.Debug.hookContainers[item.hook];
-                    //itemNode.addClass('active');
-                    if (!hookContainer) {
-                        Y.Debug.binder.addHook(item.hook);
-                    } else {
-                        hookContainer.open();
+                    var hookContainer = Y.Debug.binder.hookContainers[item.hook];
+                    Y.Debug.binder.addHook(item.hook, 'anim');
+                    if (hookContainer) {
                         hookContainer.toggle('maximize');
                         new Y.Anim({
                             node: Y.one("body"),
@@ -94,14 +111,11 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
                 });
             } else if (item.mode) {
                 closeButton.on('click', function () {
-                    //itemNode.removeClass('active');
                     Y.Debug.binder.changeMode(null);
                 });
                 titleNode.on('click', function () {
                     if (!itemNode.hasClass('active')) {
                         Y.Debug.binder.changeMode(item.mode);
-                        /*(itemNode.ancestor('ul').all('.item').removeClass('active');
-                        itemNode.addClass('active');*/
                     }
                 });
             }
@@ -119,7 +133,7 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
                 titleNode = Y.Node.create('<div/>').addClass('title').set('text', title),
                 itemGroup = Y.Node.create('<ul/>').addClass('item-group');
 
-            Y.Array.each(Y.Object.keys(section).sort(), function (itemTitle) {
+            Y.Array.each(Y.Object.keys(section), function (itemTitle) {
                 var item = section[itemTitle],
                     li = Y.Node.create('<li/>');
                 li.append(self.createItem(itemTitle, item));
