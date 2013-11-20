@@ -209,6 +209,6 @@ ac.debug.on('hook', function (debugData) {
 });
 ```
 
-# Architecture Diagram
+## Architecture Diagram
 
 [![Architecture](https://lh3.googleusercontent.com/RWhqqltEorvdX4Pmkm7wkOr0ue0zCLUFhLbVt7mD3x8YYudgrkp_hrkYOXYAmN7Eyw=w2560-h1128)](https://lh3.googleusercontent.com/RWhqqltEorvdX4Pmkm7wkOr0ue0zCLUFhLbVt7mD3x8YYudgrkp_hrkYOXYAmN7Eyw=w2560-h1128)
