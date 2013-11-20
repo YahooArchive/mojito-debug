@@ -211,4 +211,4 @@ ac.debug.on('hook', function (debugData) {
 
 ## Architecture Diagram
 
-[![Architecture](https://lh3.googleusercontent.com/RWhqqltEorvdX4Pmkm7wkOr0ue0zCLUFhLbVt7mD3x8YYudgrkp_hrkYOXYAmN7Eyw=w2560-h1128)](https://lh3.googleusercontent.com/RWhqqltEorvdX4Pmkm7wkOr0ue0zCLUFhLbVt7mD3x8YYudgrkp_hrkYOXYAmN7Eyw=w2560-h1128)
+[![Architecture](https://lh3.googleusercontent.com/8UgVESrhp3u8Tg61OPEJJtiCVj59rSAOTIjq8TGRWDNZb8KRWbm0GPvZSQA649lAoA)](https://lh3.googleusercontent.com/8UgVESrhp3u8Tg61OPEJJtiCVj59rSAOTIjq8TGRWDNZb8KRWbm0GPvZSQA649lAoA)
