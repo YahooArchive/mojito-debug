@@ -53,14 +53,26 @@ ac.debug.on('hook-name', function (debugData) {
 
 ---
 
-<a name="ac.debug.on2" href="#ac.debug.on2">**ac.debug.on**</a> (hook, content)
-Alternate version of [`ac.debug.on(hook, callback)`](#ac.debug.on). `debugData._content` is directly set to `content`.
+<a name="ac.debug.setContent" href="#ac.debug.setContent">**ac.debug.setContent**</a> (hook, content)
+Set the content of a hook to an HTML string or a JSON object. This is the equivalent of setting `debugData._content` to `content`.
 * **hook** `string` - The name of the hook.
 * **content** `string` | `object` - The content to be displayed. Can be an HTML string or a JSON object.
 
 **Example**
 ```
-ac.debug.on('hook-name', content);
+ac.debug.setContent('hook-name', content);
+```
+
+---
+
+<a name="ac.debug.appendTo" href="#ac.debug.appendTo">**ac.debug.appendTo**</a> (hook, content)
+Append new a HTML string or JSON object to the current content of the hook. This is the equivalent of pushing content to the `debugData._append` array.
+* **hook** `string` - The name of the hook.
+* **content** `string` | `object` - The content to be appended. Can be an HTML string or a JSON object.
+
+**Example**
+```
+ac.debug.appendTo('hook-name', content);
 ```
 
 ---
@@ -91,8 +103,8 @@ var hookData = ac.debug.get('hook-name');
 ---
 
 <a name="ac.debug.render" href="#ac.debug.render">**ac.debug.render**</a> ([hooks], [callback]) `client-side only`
-On the server-side, hooks get rendered automatically after the application is rendered; however, on the client-side there is no end point, and so the debugger must be told when to render any debugging data resulting from client-side debug hooks that used [`ac.debug.on(hook, callback)`](#ac.debug.on).
-* **hooks** `string` | `string[]` `optional` - A hook or list of hooks to render. If nothing is specified, then all hooks that called [`ac.debug.on(hook, callback)`](#ac.debug.on) are rendered.
+On the server-side, hooks get rendered automatically after the application is rendered; however, on the client-side there is no end point, and so the debugger must be told when to render any debugging data resulting from client-side debug hooks that used [`ac.debug.on`](#ac.debug.on).
+* **hooks** `string` | `string[]` `optional` - A hook or list of hooks to render. If nothing is specified, then all hooks that called [`ac.debug.on`](#ac.debug.on) are rendered.
 * **callback** `function` `optional` - An optional callback that is called once all the hooks have been rendered. It passes one argument, hooks, a map of hooks and their corresponding data (the same data that is returned by `ac.debug.get`). This callback can be passed as the only argument.
 
 **Example**
@@ -114,7 +126,7 @@ Debugging involves instrumenting server/client side code with debugger API calls
 
 ### Simple Debug Hook
 
-The simplest debug hook, requires no configuration, and involves directly specifying the content to be displayed. This is accomplished by calling [`ac.debug.on(hook, content)`](#ac.debug.on2), passing a second argument that is a string or an object instead of a callback function. This is the equivalent of passing a callback that sets `debugData._content` to the content.
+The simplest debug hook, requires no configuration, and involves directly specifying the content to be displayed. This is accomplished by calling [`ac.debug.setContent`](#ac.debug.setContent), passing a second argument that is a string or an object instead of a callback function. This is the equivalent of calling [`ac.debug.on`](#ac.debug.on) and setting `debugData._content` to the content.
 
 ```
 // Display HTML.
@@ -185,7 +197,7 @@ After the application finishes execution on the server-side, the debugger displa
 
 Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data.
 
-Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through [`ac.debug.on(hook, callback)`](#ac.debug.on), are ready for rendering. This is done by calling [`ac.debug.render`](#ac.debug.render).
+Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through [`ac.debug.on`](#ac.debug.on), are ready for rendering. This is done by calling [`ac.debug.render`](#ac.debug.render).
 
 **Example**
 ```
@@ -195,7 +207,7 @@ ac.debug.on('mojit-hook-name', function (debugData) {
 ac.dubug.render('mojit-hook-name');
 ```
 
-Calling [`ac.debug.on(hook, callback)`](#ac.debug.on) or [`ac.debug.log`](#ac.debug.log), immediately updates the debugger and so doesn't require explicit calls to [`ac.debug.render`](#ac.debug.render).
+Calling [`ac.debug.on`](#ac.debug.on) or [`ac.debug.log`](#ac.debug.log), immediately updates the debugger and so doesn't require explicit calls to [`ac.debug.render`](#ac.debug.render).
 
 Logs generated on the client-side are appended to any logs generated on the server-side. Rendered client-side debug hooks replace any corresponding server-side debug hooks. Alternatively, client-side hooks can augment server-side hooks by accessing the associated binder if it exists, using [`ac.debug.get`](#ac.debug.get).
 
