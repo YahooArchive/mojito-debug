@@ -109,7 +109,6 @@ ac.debug.render(['hook1', 'hook2'], function (hooks) {
 
 On the client side, ac.debug can conviniently be accessed through `Y.Debug` within any YUI module that includes `mojito-debug-addon`.
 
-
 ## Debugging
 
 Debugging involves instrumenting server/client side code with debugger API calls (debug hooks). When the debugger is disabled these hooks are empty functions, therefore the debugger presents no overhead when disabled. When the debugger is enabled, only the debug hooks specified in the debug parameter are enabled.
@@ -187,7 +186,7 @@ After the application finishes execution on the server-side, the debugger displa
 
 Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data.
 
-Since the client-side has no end point, the debugger must be informed whenever hooks getting data through `ac.debug.on(hook, callback)` are ready for rendering. This is done by calling `ac.debug.render`.
+Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through `ac.debug.on(hook, callback)`, are ready for rendering. This is done by calling `ac.debug.render`.
 
 **Example**
 ```
@@ -211,4 +210,4 @@ ac.debug.on('hook', function (debugData) {
 
 ## Architecture Diagram
 
-[![Architecture](https://lh3.googleusercontent.com/8UgVESrhp3u8Tg61OPEJJtiCVj59rSAOTIjq8TGRWDNZb8KRWbm0GPvZSQA649lAoA)](https://lh3.googleusercontent.com/8UgVESrhp3u8Tg61OPEJJtiCVj59rSAOTIjq8TGRWDNZb8KRWbm0GPvZSQA649lAoA)
+[![Architecture](https://git.corp.yahoo.com/searchfe/mojito-debug/raw/master/architecture.png)](https://git.corp.yahoo.com/searchfe/mojito-debug/raw/master/architecture.png)
