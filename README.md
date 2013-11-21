@@ -5,7 +5,6 @@ mojito-debug is an npm package that helps developers debug the client/server sid
 
 [![NPM](https://nodei.co/npm/mojito-pipeline.png)](https://nodei.co/npm/mojito-pipeline/) 
 
-
 ## Getting Started
 
 1. Install mojito-debug in the mojito application:
@@ -40,10 +39,10 @@ The debugger has three modes: `default`, `hide`, and `json`. Each of these modes
 
 ## API
 
-**ac.debug.on** (hook, callback)
+<a name="ac.debug.on" href="#ac.debug.on">**ac.debug.on**</a> (hook, callback)
 Gives access to the `debugData` object of an enabled hook.
 * **hook** `string` - The name of the hook.
-* **callback** `function` - The function that is called if the specified hook is enabled. The function passes one argument, `debugData`, an object unique to the specified hook. This object is used to store any debugging data and is passed in subsequent calls to `ac.debug.on` for the specified hook.
+* **callback** `function` - The function that is called if the specified hook is enabled. The function passes one argument, `debugData`, an object unique to the specified hook. This object is used to store any debugging data and is passed in subsequent calls to [`ac.debug.on`](#ac.debug.on) for the specified hook.
 
 **Example**
 ```
@@ -54,8 +53,8 @@ ac.debug.on('hook-name', function (debugData) {
 
 ---
 
-**ac.debug.on** (hook, content)
-Alternate version of ac.debug.on(hook, callback). `debugData._content` is directly set to `content`.
+<a name="ac.debug.on2" href="#ac.debug.on2">**ac.debug.on**</a> (hook, content)
+Alternate version of [`ac.debug.on(hook, callback)`](#ac.debug.on). `debugData._content` is directly set to `content`.
 * **hook** `string` - The name of the hook.
 * **content** `string` | `object` - The content to be displayed. Can be an HTML string or a JSON object.
 
@@ -66,7 +65,7 @@ ac.debug.on('hook-name', content);
 
 ---
 
-**ac.debug.log** (line, [options])
+<a name="ac.debug.log" href="#ac.debug.log">**ac.debug.log**</a> (line, [options])
 Logs an HTML line or a JSON object. Lines are shown by the `log` hook whenever enabled.
 * **line** `string` | `object` - The line to log. This line can be an HTML string or a JSON object.
 * **options** `string` | `object` `optional` - Options include the strings `error` and `warn` or a JSONTree options object (see JSONTree documentation).
@@ -79,7 +78,7 @@ ac.debug.log(errorObject);
 
 ---
 
-**ac.debug.get** (hook)
+<a name="ac.debug.get" href="#ac.debug.get">**ac.debug.get**</a> (hook)
 Gets all the data associated with a debug hook.
 * **hook** `string` - The name of the hook.
 * **returns** `object` - The data associated with the hook, this is the same as any configuration specified for this hook plus `debugData`, the object used to store debugging data. On the client-side, this object also includes `binder`, a reference to any associated hook binder, and `hookContainer`, the HookContainer instance representing the hook on the page (See HookContainer).
@@ -91,9 +90,9 @@ var hookData = ac.debug.get('hook-name');
 
 ---
 
-**ac.debug.render** ([hooks], [callback]) `client-side only`
-On the server-side, hooks get rendered automatically after the application is rendered; however, on the client-side there is no end point, and so the debugger must be told when to render any debugging data resulting from client-side debug hooks that used `ac.debug.on(hook, callback)`.
-* **hooks** `string` | `string[]` `optional` - A hook or list of hooks to render. If nothing is specified, then all hooks that called `ac.debug.on(hook, callback)` are rendered.
+<a name="ac.debug.render" href="#ac.debug.render">**ac.debug.render**</a> ([hooks], [callback]) `client-side only`
+On the server-side, hooks get rendered automatically after the application is rendered; however, on the client-side there is no end point, and so the debugger must be told when to render any debugging data resulting from client-side debug hooks that used [`ac.debug.on(hook, callback)`](#ac.debug.on).
+* **hooks** `string` | `string[]` `optional` - A hook or list of hooks to render. If nothing is specified, then all hooks that called [`ac.debug.on(hook, callback)`](#ac.debug.on) are rendered.
 * **callback** `function` `optional` - An optional callback that is called once all the hooks have been rendered. It passes one argument, hooks, a map of hooks and their corresponding data (the same data that is returned by `ac.debug.get`). This callback can be passed as the only argument.
 
 **Example**
@@ -105,9 +104,9 @@ ac.debug.render(['hook1', 'hook2'], function (hooks) {
 
 ---
 
-**Y.Debug.*** `client-side only`
+<a name="Y.debug" href="#Y.debug">**Y.Debug.***</a> `client-side only`
 
-On the client side, ac.debug can conviniently be accessed through `Y.Debug` within any YUI module that includes `mojito-debug-addon`.
+On the client side, ac.debug can conviniently be accessed through [`Y.Debug`](#Y.debug) within any YUI module that includes `mojito-debug-addon`.
 
 ## Debugging
 
@@ -115,7 +114,7 @@ Debugging involves instrumenting server/client side code with debugger API calls
 
 ### Simple Debug Hook
 
-The simplest debug hook, requires no configuration, and involves directly specifying the content to be displayed. This is accomplished by calling `ac.debug.on`, passing a second argument that is a string or an object instead of a callback function. This is the equivalent of passing a callback that sets `debugData._content` to the content.
+The simplest debug hook, requires no configuration, and involves directly specifying the content to be displayed. This is accomplished by calling [`ac.debug.on(hook, content)`](#ac.debug.on2), passing a second argument that is a string or an object instead of a callback function. This is the equivalent of passing a callback that sets `debugData._content` to the content.
 
 ```
 // Display HTML.
@@ -182,11 +181,11 @@ YUI.add('MojitHookController', function (Y, NAME) {
 
 ### Client Side Debugging
 
-After the application finishes execution on the server-side, the debugger displays the application in an iframe on the client-side. Once displayed, client-side YUI modules that require `mojito-debug-addon` have access to the debugger through `ac.debug` and its equivalent `Y.Debug`.
+After the application finishes execution on the server-side, the debugger displays the application in an iframe on the client-side. Once displayed, client-side YUI modules that require `mojito-debug-addon` have access to the debugger through [`ac.debug`](#api) and its equivalent [`Y.Debug`](#Y.debug).
 
 Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data.
 
-Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through `ac.debug.on(hook, callback)`, are ready for rendering. This is done by calling `ac.debug.render`.
+Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through [`ac.debug.on(hook, callback)`](#ac.debug.on), are ready for rendering. This is done by calling [`ac.debug.render`](#ac.debug.render).
 
 **Example**
 ```
@@ -196,9 +195,9 @@ ac.debug.on('mojit-hook-name', function (debugData) {
 ac.dubug.render('mojit-hook-name');
 ```
 
-Calling `ac.debug.on(hook, content)` or `ac.debug.log`, immediately updates the debugger and so doesn't require explicit calls to `ac.debug.render`.
+Calling [`ac.debug.on(hook, callback)`](#ac.debug.on) or [`ac.debug.log`](#ac.debug.log), immediately updates the debugger and so doesn't require explicit calls to [`ac.debug.render`](#ac.debug.render).
 
-Logs generated on the client-side are appended to any logs generated on the server-side. Rendered client-side debug hooks replace any corresponding server-side debug hooks. Alternatively, client-side hooks can augment server-side hooks by accessing the associated binder if it exists, using `ac.debug.get`.
+Logs generated on the client-side are appended to any logs generated on the server-side. Rendered client-side debug hooks replace any corresponding server-side debug hooks. Alternatively, client-side hooks can augment server-side hooks by accessing the associated binder if it exists, using [`ac.debug.get`](#ac.debug.get).
 
 **Example**
 ```
