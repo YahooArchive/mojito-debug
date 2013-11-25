@@ -1,9 +1,9 @@
-# mojito-debug [![Build Status](https://secure.travis-ci.org/yahoo/mojito-pipeline.png)](http://travis-ci.org/yahoo/mojito-pipeline)
+# mojito-debug [![Build Status](https://secure.travis-ci.org/yahoo/mojito-debug.png)](http://travis-ci.org/yahoo/mojito-debug)
 
 
 mojito-debug is an npm package that helps developers debug the client/server sides of their [Mojito](http://developer.yahoo.com/cocktails/mojito/) applications through user-defined debug hooks. These hooks are enabled when a `debug` parameter appears in the url, and the results are displayed on the client-side below the application.
 
-[![NPM](https://nodei.co/npm/mojito-pipeline.png)](https://nodei.co/npm/mojito-pipeline/) 
+[![NPM](https://nodei.co/npm/mojito-debug.png)](https://nodei.co/npm/mojito-debug/)
 
 ## Getting Started
 

@@ -1,4 +1,11 @@
-/*jslint nomen: true */
+/*
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
+ */
+
+/*jslint browser: true, nomen: true */
+/*global YUI */
 
 YUI.add('mojito-debug-addon', function (Y, NAME) {
     'use strict';
@@ -22,8 +29,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         }
 
         this.mode = ac.params.params.url.hasOwnProperty('debug') ? '' :
-                    ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
-                    ac.params.params.url.hasOwnProperty('debug.json') ? 'json' : null;
+                        ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
+                        ac.params.params.url.hasOwnProperty('debug.json') ? 'json' : null;
 
         // Do nothing if the debug parameter is not present.
         if (this.mode === null) {

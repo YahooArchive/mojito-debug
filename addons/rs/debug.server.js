@@ -1,4 +1,12 @@
-/*jslint nomen: true */
+/*
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
+ */
+
+/*jslint node: true, nomen: true */
+/*global YUI */
+
 YUI.add('addon-rs-debug', function (Y, NAME) {
     'use strict';
 
@@ -62,7 +70,8 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
     });
 
     Y.namespace('mojito.addons.rs').debug = RSAddonDebug;
-}, {
+
+}, '0.0.1', {
     requires: [
         'plugin',
         'oop'
