@@ -7,7 +7,7 @@
     },
     "dependencies": {
         "mojito-debug": "*",
-        "mojito": "0.7.x",
-        "mojito-cli": "~0.0.5"
+        "mojito": "0.8.x",
+        "mojito-cli": "0.1.x"
     }
 }

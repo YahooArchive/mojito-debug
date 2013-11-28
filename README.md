@@ -221,4 +221,4 @@ ac.debug.on('hook', function (debugData) {
 
 ## Architecture Diagram
 
-[![Architecture](https://git.corp.yahoo.com/searchfe/mojito-debug/raw/master/architecture.png)](https://git.corp.yahoo.com/searchfe/mojito-debug/raw/master/architecture.png)
+[![Architecture](https://github.com/yahoo/mojito-debug/raw/master/architecture.png)](https://github.com/yahoo/mojito-debug/raw/master/architecture.png)

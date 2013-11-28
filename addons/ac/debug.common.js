@@ -229,6 +229,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             Y.Debug = window.top.DEBUGGER;
             //Y.Debug.binder._hookIntoMojitProxy.call(Y.Debug.binder, Y);
         } else {
+            Y.Debug = {};
             Y.mix(Y.Debug, DebugAddon.prototype);
         }
     }
