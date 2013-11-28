@@ -63,8 +63,8 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         debug: function (ac) {
+            // Render all hooks.
             ac.debug._render(function (hooks, hooksMeta) {
-
                 ac.data.set('app', ac.debug.appHtml);
                 ac.data.set('hooks', hooks);
                 ac.data.set('urlHooks', ac.debug.urlHooks);
@@ -108,6 +108,26 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             instance.action = route.call[1];
 
             return instance;
+        },
+
+        invoke: function (ac) {
+            var body = ac.params.body(),
+                url = ac.params.url(),
+                hooks = body.hooks,
+                command = body.command,
+                adapter = new Y.mojito.OutputBuffer('proxy', function (err, data, meta) {
+                    ac.http.setHeader('Content-type', 'application/json');
+                    ac.done(JSON.stringify({
+                        data: data,
+                        meta: meta,
+                        hooks: ac.debug.hooks
+                    }), meta);
+                });
+
+            ac.debug.hooks = hooks;
+
+            Y.mix(adapter, ac._adapter);
+            ac._dispatch(command, adapter);
         }
     };
 }, '0.0.1', {
@@ -116,6 +136,8 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         'mojito-composite-addon',
         'mojito-data-addon',
         'mojito-util',
-        'mojito-url-addon'
+        'mojito-url-addon',
+        'mojito-params-addon',
+        'mojito-http-addon'
     ]
 });

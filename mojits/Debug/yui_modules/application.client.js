@@ -2,12 +2,12 @@
 YUI.add('mojito-debug-application', function (Y, NAME) {
     'use strict';
 
-    function DebugApplication(appIframe, appHtml) {
-        this.appIframe = appIframe;
-        this.appWindow = appIframe._node.contentWindow;
-        this.appWindow.document.open();
-        this.appWindow.document.write(appHtml);
-        this.appWindow.document.close();
+    function DebugApplication(iframe, appHtml) {
+        this.iframe = iframe;
+        this.window = iframe._node.contentWindow;
+        this.window.document.open();
+        this.window.document.write(appHtml);
+        this.window.document.close();
 
         this.opened = false;
     }
@@ -15,11 +15,11 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
     DebugApplication.prototype = {
 
         init: function (callback) {
-            var appIframe = this.appIframe,
-                appWindow = this.appWindow;
+            var iframe = this.iframe,
+                window = this.window;
 
             if (Y.Debug.mode !== 'hide') {
-                appWindow.onload = function () {
+                window.onload = function () {
                     this.open();
                     callback();
                 }.bind(this);
@@ -31,8 +31,8 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
         open: function (anim) {
             var self = this;
 
-            if (!self.appWindow.document.body) {
-                self.appWindow.onload = function () {
+            if (!self.window.document.body) {
+                self.window.onload = function () {
                     self.toggle(anim, 'show');
                 };
             } else {
@@ -55,18 +55,22 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
 
             // Set iframe height to auto such that the document inside returns the correct scrollheight
             if (this.opened) {
-                this.appIframe.setStyle('height', 'auto');
+                this.iframe.setStyle('height', 'auto');
             }
 
-            this.appIframe.transition({
+            this.iframe.transition({
                 easing: 'ease-out',
                 duration: anim ? 0.3 : 0,
-                height: this.opened ? this.appWindow.document.body.scrollHeight + "px" : '0px'
+                height: this.opened ? this.window.document.body.scrollHeight + "px" : '0px'
             });
 
             if (this.opened) {
                 this.timeout = setInterval(function () {
-                    this.appIframe.setStyle('height', this.appWindow.document.body.scrollHeight + "px");
+                    try {
+                        this.iframe.setStyle('height', this.window.document.body.scrollHeight + "px");
+                    } catch (e) {
+                        clearTimeout(this.timeout);
+                    }
                 }.bind(this), 200);
             } else {
                 clearTimeout(this.timeout);

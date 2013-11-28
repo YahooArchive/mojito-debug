@@ -95,7 +95,8 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
                 });
 
                 titleNode.on('click', function () {
-                    var hookContainer = Y.Debug.binder.hookContainers[item.hook];
+                    var hookContainer = Y.Debug.binder.hooks[item.hook] &&
+                        Y.Debug.binder.hooks[item.hook].hookContainer;
                     Y.Debug.binder.addHook(item.hook, 'anim');
                     if (hookContainer) {
                         hookContainer.toggle('maximize');

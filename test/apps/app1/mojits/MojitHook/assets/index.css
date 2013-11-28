@@ -1,3 +1,7 @@
-.text {
+.client {
     color: green;
+}
+
+.server {
+    color: #4251C3;
 }

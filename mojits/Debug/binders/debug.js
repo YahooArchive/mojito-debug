@@ -23,6 +23,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
     Y.namespace('mojito.binders')[NAME] = {
         init: function (mojitProxy) {
+            this._hookMojitProxy();
             this.mojitProxy = mojitProxy;
             this.initDebugger(mojitProxy);
             this.initHistory();
@@ -32,8 +33,158 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             var self = this;
             self.app = new Y.mojito.debug.Application(node.one('#app'), this.mojitProxy.data.get('app'));
             self.app.init(function () {
+                var getElementById = window.document.getElementById,
+                    debuggerDocument = window.document,
+                    appDocument = self.app.window.document;
+                window.document.getElementById = function (id) {
+                    return getElementById.call(appDocument, id) || getElementById.call(debuggerDocument, id);
+                };
+                self._hookRpc(self.app.window.YMojito.client);
                 self.debuggerNode.setStyle('display', 'block');
             });
+
+            delete this.mojitProxy.data;
+        },
+
+        _hookMojitProxy: function () {
+            var self = this,
+                OriginalMojitProxy = Y.mojito.MojitProxy;
+            Y.mojito.MojitProxy = function (config) {
+                var mojitProxy = new OriginalMojitProxy(config);
+                // Check if this binder belongs to a hook
+                Y.Object.each(self.hooks, function (hook, hookName) {
+                    if (hook._instanceId === config.instanceId) {
+                        hook.binder = mojitProxy._binder;
+                    }
+                });
+                return mojitProxy;
+            };
+        },
+
+        _hookRpc: function (client) {
+            var self = this,
+                originalRpc = MojitoClient.dispatcher.rpc,
+                debuggerProxy = self.mojitProxy;
+
+            MojitoClient.dispatcher.rpc = client.dispatcher.rpc = function (command, adapter) {
+                var params,
+                    url = {},
+                    invokeOptions;
+
+                if (command.instance.instanceId === debuggerProxy._instanceId) {
+                    return originalRpc.call(MojitoClient.dispatcher, command, adapter);
+                }
+
+                if (this.tunnel) {
+                    command.rpc = false;
+
+                    Y.log('Dispatching instance "' + (command.instance.base || '@' +
+                        command.instance.type) + '" through RPC tunnel.', 'info', NAME);
+
+                    params = window.location.search.substring(1).split('&');
+                    Y.Array.each(params, function (param) {
+                        var parts = param.split('=');
+                        url[parts[0]] = parts[1];
+                    });
+
+                    debuggerProxy.invoke('invoke', {
+                        params: {
+                            url: url,
+                            body: {
+                                hooks: self._getHooks(),
+                                config: self.config,
+                                command: command
+                            }
+                        },
+                        rpc: true
+                    }, function (error, result, meta) {
+                        if (error) {
+                            return adapter.error(error);
+                        }
+                        self._updateHooks(result.hooks);
+                        adapter.callback(error, result.data, result.meta);
+
+                        Y.Debug.render();
+                    });
+                } else {
+                    adapter.error(new Error('RPC tunnel is not available in the [' +
+                        command.context.runtime + '] runtime.'));
+                }
+            }.bind(MojitoClient.dispatcher);
+        },
+
+        _getHooks: function () {
+            var self = this,
+                hooks = {};
+            Y.Object.each(self.hooks, function (hook, hookName) {
+                hooks[hookName] = {};
+                Y.mix(hooks[hookName], hook);
+                delete hooks[hookName].hookContainer;
+                delete hooks[hookName].binder;
+            });
+            return hooks;
+        },
+
+        _updateHooks: function (updatedHooks) {
+            var hooks = this.hooks;
+            Y.Object.each(updatedHooks, function (updatedHook, hookName) {
+                Y.mix(hooks[hookName], updatedHook, true);
+            });
+        },
+
+        _hookIntoMojitProxy: function (Y) {
+            var self = this,
+                MojitProxy = Y.use('mojito-mojit-proxy').mojito.MojitProxy,
+                originalInvoke = MojitProxy.prototype.invoke;
+            MojitProxy.prototype.invoke = function (action, options, callback) {
+                var proxy = this,
+                    url = {},
+                    params,
+                    invokeOptions;
+
+                proxy._store.expandInstance({
+                    base: proxy._base,
+                    type: proxy.type
+                }, proxy.context, function (err, instance) {
+                    if (err || !instance || !instance.controller) {
+                        params = window.location.search.substring(1).split('&');
+                        Y.Array.each(params, function (param) {
+                            var parts = param.split('=');
+                            url[parts[0]] = parts[1];
+                        });
+
+                        invokeOptions = {
+                            params: {
+                                url: url,
+                                body: {
+                                    hooks: self.hooks,
+                                    config: self.config,
+                                    proxy: {
+                                        _base: proxy._base,
+                                        type: proxy.type,
+                                        config: Y.mojito.util.copy(proxy.config),
+                                        instanceId: proxy.instanceId
+                                    },
+                                    action: action,
+                                    options: options
+                                }
+                            },
+                            rpc: true
+                        };
+
+                        originalInvoke.call(self.mojitProxy, 'invoke', invokeOptions, function (error, data, meta) {
+                            Y.mix(self.hooks, data.hooks, true);
+                            callback(error, data.proxy);
+                            Y.Debug.render(function () {
+                                self.updateDebugger();
+                            });
+                        });
+                    } else {
+                        return originalInvoke.call(proxy, action, options, callback);
+                    }
+
+                });
+            };
         },
 
         initHistory: function () {
@@ -60,7 +211,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     currentHooks = [],
                     mode = e.newVal.mode,
                     reload,
-                    hookContainers = self.hookContainers;
+                    hooks = self.hooks;
 
                 if (e.src !== 'popstate') {
                     return;
@@ -75,7 +226,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
                 // Reload the page if any hookContainer to be displayed is missing
                 reload = Y.some(currentHooks, function (hook) {
-                    if (!hookContainers[hook]) {
+                    if (!hooks[hook]) {
                         return true;
                     }
                 });
@@ -87,15 +238,15 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
                 // Place hooks in their proper order.
                 Y.Array.each(currentHooks, function (hook) {
-                    var hookContainer = hookContainers[hook];
+                    var hookContainer = self.hooks[hook].hookContainer;
                     hookContainer.ancestor().append(hookContainer);
                 });
 
-                Y.Object.each(hookContainers, function (hookContainer, hook) {
-                    if (currentHooks.indexOf(hook) === -1) {
-                        hookContainer.close();
+                Y.Object.each(hooks, function (hook, hookName) {
+                    if (currentHooks.indexOf(hookName) === -1) {
+                        hook.hookContainer.close();
                     } else {
-                        hookContainer.open();
+                        hook.hookContainer.open();
                     }
                 });
             });
@@ -108,7 +259,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         },
 
         initDebugger: function (mojitProxy) {
-            var command = {
+            var self = this,
+                command = {
+                    context: mojitProxy.context,
                     instance: {
                         controller: 'debug-controller',
                         base: mojitProxy._base,
@@ -122,9 +275,15 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     }
                 },
                 adapter = new Y.mojito.OutputHandler(mojitProxy._viewId, function () {}, MojitoClient),
-                ac = {};
+                ac = {
+                    dispatcher: MojitoClient.dispatcher
+                };
 
-            this.debuggerNode = Y.one('#debugger');
+            ac._dispatch = function (command, adapter) {
+                return ac.dispatcher.dispatch(command, adapter);
+            };
+
+            self.debuggerNode = Y.one('#debugger');
 
             Y.Array.each(['composite', 'params', 'assets'], function (addon) {
                 ac[addon] = new Y.mojito.addons.ac[addon](command, adapter, ac);
@@ -132,32 +291,42 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             // Allow client side YUI modules to use the debug addon through Y.Debug
             Y.Debug = window.top.DEBUGGER = new Y.mojito.addons.ac.debug(command, adapter, ac);
-            Y.Debug.binder = this;
+            Y.Debug.binder = self;
 
-            this.mode = mojitProxy.data.get('mode');
-            this.hooks = mojitProxy.data.get('hooks');
-            this.urlHooks = mojitProxy.data.get('urlHooks');
-            this.config = mojitProxy.data.get('config');
-            this.hookContainers = {};
+            // Make render method public only on client side.
+            Y.Debug.render = function (hooks) {
+                Y.Debug._render(hooks, function (renderedHooks, meta) {
+                    self.updateDebugger();
+                    if (meta.binders) {
+                        MojitoClient.attachBinders(meta.binders);
+                    }
+                });
+            };
+
+            this.mode     = Y.Debug.mode     = mojitProxy.data.get('mode');
+            this.hooks    = Y.Debug.hooks    = mojitProxy.data.get('hooks');
+            this.urlHooks = Y.Debug.urlHooks = mojitProxy.data.get('urlHooks');
+            this.config   = Y.Debug.config   = mojitProxy.data.get('config');
+
+            mojitProxy.config = this.config;
 
             this.updateDebugger();
         },
 
         updateDebugger: function () {
             var self = this,
-                hookContainers = self.hookContainers,
                 hooks = self.hooks;
 
             Y.Object.each(hooks, function (hook, hookName) {
-                if (!hook.needsUpdate) {
+                if (!hook._rendered) {
                     return;
                 }
+                if (!hook.hookContainer) {
+                    hook.hookContainer = new Y.mojito.debug.HookContainer(hookName, hook);
 
-                if (!hookContainers[hookName]) {
-                    hookContainers[hookName] = new Y.mojito.debug.HookContainer(hookName, hook);
-                    self.debuggerNode.append(hookContainers[hookName]);
+                    self.debuggerNode.append(hook.hookContainer);
                 } else {
-                    hookContainers[hookName].updateContent(hook);
+                    hook.hookContainer.update(hook);
                 }
             });
         },
@@ -233,7 +402,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 });
 
                 reload = Y.some(newHooks, function (hook) {
-                    if (!self.hookContainers[hook]) {
+                    if (!self.hooks[hook]) {
                         return true;
                     }
                 });
@@ -246,7 +415,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 Y.Array.each(newHooks, function (urlHook) {
                     Y.Array.each(self.config.aliases[urlHook] || [urlHook], function (hook) {
                         if (currentHooks.indexOf(hook) === -1) {
-                            var hookContainer = self.hookContainers[hook];
+                            var hookContainer = self.hooks[hook].hookContainer;
                             hookContainer.ancestor().append(hookContainer);
                             hookContainer.open(anim);
                         }
@@ -256,7 +425,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 // Close hook containers if necessary.
                 Y.Array.each(currentHooks, function (hook) {
                     if (newUrl.hooks.indexOf(hook) === -1) {
-                        var hookContainer = self.hookContainers[hook];
+                        var hookContainer = self.hooks[hook].hookContainer;
                         hookContainer.close(anim);
                     }
                 });
@@ -368,6 +537,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         'mojito-action-context',
         'mojito-client',
         'mojito-output-buffer',
-        'mojito-debug-hook-container'
+        'mojito-debug-hook-container',
+        'mojito-util'
     ]
 });

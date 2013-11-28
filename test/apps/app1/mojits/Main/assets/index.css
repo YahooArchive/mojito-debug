@@ -1,0 +1,33 @@
+.links a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #05568B;
+    font-weight: bold;
+}
+
+.links a:hover {
+    color: #0088cc;
+}
+
+
+#mojits {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+#mojits input[type=button] {
+    width: 145px;
+    margin-bottom: 10px;
+}
+
+#mojits > fieldset {
+    float: left;
+}
+
+#mojits > fieldset > legend {
+    font-weight: bold;
+}
+
+#child {
+    margin-left: 40px;
+}

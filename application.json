@@ -15,6 +15,7 @@
 
                     "log": {
                         "title": "Log",
+                        "class": "debug-log-hook",
                         "description": "Displays logging information."
                     }
                 },

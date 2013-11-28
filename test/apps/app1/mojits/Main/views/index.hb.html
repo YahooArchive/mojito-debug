@@ -1,16 +1,29 @@
 <div id="{{mojit_view_id}}">
-    <h1>Application Main Page</h1>
-
-    <div class='container'>
-        <a href="/?debug=generic-hook,mojit-hook">Debugger Link</a>
-        <br>
-        <input type="button" text="Refresh Main Mojit"
-        <a href="/?debug=generic-hook,mojit-hook">Debugger Link</a>
+    <h1>Index Page</h1>
+    <div class="links">
+        <a href="/page1">Page 1</a>
+        <a href="https://git.corp.yahoo.com/searchfe/mojito-debug/blob/master/README.md#mojito-debug-">Debugger Documentation</a>
     </div>
 
-    <div class="container">
-        <div class="console" id="console">
-
-        </div>
+    <div id="mojits">
+        <fieldset id="main">
+            <legend>Main Mojit</legend>
+            <div>Created: {{time}}</div>
+            <br/>
+            <input id="refresh-main" type="button" value="Refresh Main Mojit"/>
+                <input name="main-location" value="client" type="radio" checked>Client</input>
+                <input name="main-location" value="server" type="radio">Server</input>
+            <br/>
+            <input id="refresh-mojit-hook" type="button" value="Refresh Mojit-Hook"/>
+                <input name="mojit-hook-location" value="client" type="radio" checked>Client</input>
+                <input name="mojit-hook-location" value="server" type="radio">Server</input>
+            <br/>
+            <input id="toggle-mojit-hook" type="button" value="Toggle Mojit-Hook"/></br>
+        </fieldset>
+        <fieldset id="child">
+            <legend>Child Mojit</legend>
+            {{{child}}}
+        </fieldset>
+        <div style="clear:both"/>
     </div>
 </div>

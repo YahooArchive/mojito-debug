@@ -1,6 +1,9 @@
 [{
     "settings": ["master"],
     "actionTimeout": 0,
+    "viewEngine": {
+        "cacheTemplates": false
+    },
     "yui": {
         "config-disabled": {
             "filter": "debug"
@@ -23,8 +26,8 @@
         "debug": {
             "config": {
                 "hooks": {
-                    "generic-hook": {
-                        "title": "Generic Hook"
+                    "simple-hook": {
+                        "title": "Simple Hook"
                     },
                     "mojit-hook": {
                         "title": "Mojit Hook",

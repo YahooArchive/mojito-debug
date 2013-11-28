@@ -7,9 +7,9 @@
         "call": "main.index"
     },
 
-    "test": {
+    "page1": {
         "verbs": ["get"],
-        "path": "/test",
-        "call": "@Test.index"
+        "path": "/page1",
+        "call": "main.page1"
     }
 }]

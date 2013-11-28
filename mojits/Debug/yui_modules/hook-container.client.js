@@ -9,7 +9,7 @@ YUI.add('mojito-debug-hook-container', function (Y) {
             closeButton = Y.Node.create('<span/>').addClass('close button').set('text', 'x'),
             minimize = Y.Node.create('<span/>').addClass('minimize button').set('innerHTML', '&ndash;'),
             maximize = Y.Node.create('<span/>').addClass('maximize button').set('innerHTML', '&#9634;'),
-            content = Y.Node.create('<div/>').addClass('content'),
+            content = Y.Node.create('<div/>').addClass('content').addClass(hook.config.class),
             contentWrapper = Y.Node.create('<div/>').addClass('content-wrapper');
 
         this.opened = true;
@@ -56,9 +56,12 @@ YUI.add('mojito-debug-hook-container', function (Y) {
 
     HookContainer.prototype = {
         update: function (hook) {
-            // certain hooks will specifically say to append instead of replace
-            this.content.set('innerHTML', '');
-            this.content.append(new Y.mojito.debug.GenericHook(hook.debugData));
+            if (!this.hookContent) {
+                this.hookContent = new Y.mojito.debug.HookContent();
+                this.content.append(this.hookContent);
+            }
+
+            this.hookContent.update(hook.debugData);
         },
 
         close: function (anim) {
@@ -125,7 +128,7 @@ YUI.add('mojito-debug-hook-container', function (Y) {
     Y.namespace('mojito.debug').HookContainer = HookContainer;
 }, '0.0.1', {
     requires: [
-        'mojito-debug-generic-hook',
+        'mojito-debug-hook-content',
         'transition'
     ]
 });
