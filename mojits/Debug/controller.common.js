@@ -1,4 +1,12 @@
+/*
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
+ */
+
 /*jslint nomen: true */
+/*global YUI */
+
 YUI.add('mojito-debug-controller', function (Y, NAME) {
     'use strict';
 

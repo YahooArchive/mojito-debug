@@ -1,8 +1,12 @@
-/*jslint nomen: true, indent: 4 */
-/*globals unescape, setTimeout, clearTimeout */
 /*
- * Copyright (c) 2012 Yahoo! Inc. All rights reserved.
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
  */
+
+/*jslint nomen: true, indent: 4 */
+/*globals YUI, unescape, setTimeout, clearTimeout */
+
 YUI.add('JSONTreeBinderIndex', function (Y, NAME) {
     'use strict';
 

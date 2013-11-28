@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
+ */
+
+/*global YUI */
+
 YUI.add('mojito-debug-hook-container', function (Y) {
     'use strict';
     var HookContainer = function (hookName, hook) {

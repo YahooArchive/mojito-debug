@@ -1,5 +1,11 @@
-/*jslint regexp: true, nomen: true, plusplus: true, forin: true */
-/*globals escape */
+/*
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
+ */
+
+/*jslint regexp: true, nomen: true, plusplus: true */
+/*globals YUI, escape */
 
 YUI.add('mojito-debug-utils', function (Y, NAME) {
     'use strict';

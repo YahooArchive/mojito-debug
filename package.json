@@ -7,8 +7,8 @@
         "ycb": "1.0.x"
     },
     "devDependencies": {
-        "mojito": "0.7.x",
-        "mojito-cli": "~0.0.5",
+        "mojito": "0.8.x",
+        "mojito-cli": "0.1.x",
         "istanbul": "*"
     },
     "scripts": {
@@ -19,8 +19,19 @@
     "engines": {
         "node": "> 0.10",
         "npm": "> 1.2",
-        "mojito": "> 0.7"
+        "mojito": "> 0.8"
     },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/yahoo/mojito-debug.git"
+    },
+    "bugs": "https://github.com/yahoo/mojito-debug/issues",
+    "licenses": [
+        {
+            "type": "BSD",
+            "url": "https://github.com/yahoo/mojito-debug/blob/master/LICENSE.txt"
+        }
+    ],
     "yahoo": {
         "mojito": {
             "type": "bundle"

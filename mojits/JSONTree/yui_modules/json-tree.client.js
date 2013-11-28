@@ -1,5 +1,11 @@
-/*jslint regexp: true, nomen: true */
-/*globals unescape */
+/*
+ * Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+ * Copyrights licensed under the New BSD License.
+ * See the accompanying LICENSE file for terms.
+ */
+
+/*jslint browser: true, regexp: true, nomen: true */
+/*globals YUI, unescape */
 
 YUI.add('mojito-debug-json-tree', function (Y, NAME) {
     'use strict';
