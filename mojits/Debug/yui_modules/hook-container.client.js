@@ -11,18 +11,16 @@ YUI.add('mojito-debug-hook-container', function (Y) {
     var HookContainer = function (hookName, hook) {
         var title = hook.config.title,
             description = hook.config.description,
-            container = Y.Node.create('<div/>').addClass('maximized hook-container').set('id', hookName + '-hook'),
+            node = Y.Node.create('<div/>').addClass('maximized hook-container').set('id', hookName + '-hook'),
             header = Y.Node.create('<div/>').addClass('header no-select'),
             titleNode = Y.Node.create('<span/>').addClass('title').set('text', title).set('title', description),
             closeButton = Y.Node.create('<span/>').addClass('close button').set('text', 'x'),
             minimize = Y.Node.create('<span/>').addClass('minimize button').set('innerHTML', '&ndash;'),
             maximize = Y.Node.create('<span/>').addClass('maximize button').set('innerHTML', '&#9634;'),
-            content = Y.Node.create('<div/>').addClass('content').addClass(hook.config.class),
-            contentWrapper = Y.Node.create('<div/>').addClass('content-wrapper');
+            contentWrapper = Y.Node.create('<div/>').addClass('content-wrapper').addClass(hook.config['class']);
 
         this.opened = true;
         this.maximized = true;
-        this.content = content;
         this.contentWrapper = contentWrapper;
         this.hook = hookName;
 
@@ -31,15 +29,15 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         });
 
         titleNode.on('click', function () {
-            container.toggle();
+            node.toggle();
         });
 
         minimize.on('click', function () {
-            container.toggle();
+            node.toggle();
         });
 
         maximize.on('click', function () {
-            container.toggle();
+            node.toggle();
         });
 
         header.append(titleNode)
@@ -47,26 +45,24 @@ YUI.add('mojito-debug-hook-container', function (Y) {
               .append(minimize)
               .append(maximize);
 
-        contentWrapper.append(content);
-
-        container.append(header)
+        node.append(header)
                  .append(contentWrapper);
 
-        Y.mix(container, this);
-        Y.mix(container, HookContainer.prototype);
+        Y.mix(node, this);
+        Y.mix(node, HookContainer.prototype);
 
         if (hook) {
-            container.update(hook);
+            this.update(hook);
         }
 
-        return container;
+        return node;
     };
 
     HookContainer.prototype = {
         update: function (hook) {
             if (!this.hookContent) {
                 this.hookContent = new Y.mojito.debug.HookContent();
-                this.content.append(this.hookContent);
+                this.contentWrapper.append(this.hookContent);
             }
 
             this.hookContent.update(hook.debugData);

@@ -14,7 +14,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         index: function (ac) {
             var self = this;
 
-            self.runApplication(ac, function (err, appHtml, appMeta) {
+            self.runApplication(ac, function (err, appHtml) {
                 ac.debug.appHtml = appHtml;
                 self.runDebugger(ac, function (err, data, meta) {
                     ac.done(data, meta);
@@ -22,12 +22,25 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             });
         },
 
-        runApplication: function (ac, done) {
+        runApplication: function (ac, callback) {
             var command = {
                     instance: this.createAppInstance(ac),
-                    context: ac.context
+                    context: ac.context,
+                    params: ac.params.params
                 },
-                adapter = new Y.mojito.OutputBuffer('application', done);
+                adapter = {
+                    data: '',
+                    done: function (data) {
+                        this.data += data;
+                        callback(null, this.data);
+                    },
+                    flush: function (data) {
+                        this.data += data;
+                    },
+                    error: function (err) {
+                        callback(err);
+                    }
+                };
 
             Y.mix(adapter, ac._adapter);
             ac._dispatch(command, adapter);
@@ -74,7 +87,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             // Render all hooks.
             ac.debug._render(function (hooks, hooksMeta) {
                 ac.data.set('app', ac.debug.appHtml);
-                ac.data.set('hooks', hooks);
+                ac.data.set('hooks', ac.debug._decycleHooks(hooks));
                 ac.data.set('urlHooks', ac.debug.urlHooks);
                 ac.data.set('mode', ac.debug.mode);
                 ac.data.set('config', ac.debug.config);
@@ -84,7 +97,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         debugJson: function (ac) {
-            ac.done(JSON.stringify(ac.debug.hooks, null, '    '), {
+            ac.done(JSON.stringify(ac.debug._decycleHooks(ac.debug.hooks), null, '    '), {
                 http: {
                     headers: {
                         'content-type': 'application/json; charset="utf-8"'
@@ -94,7 +107,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         createAppInstance: function (ac) {
-            var appUrl = ac._adapter.req.url.replace('/debug', '/'),
+            var appUrl = ac._adapter.req.url.replace('/debug/', '/'),
                 route = ac.url.find(appUrl),
                 instance = {};
 
@@ -128,7 +141,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                     ac.done(JSON.stringify({
                         data: data,
                         meta: meta,
-                        hooks: ac.debug.hooks
+                        hooks: Y.mojito.debug.Utils.removeCycles(ac.debug.hooks)
                     }), meta);
                 });
 
@@ -140,6 +153,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
     };
 }, '0.0.1', {
     requires: [
+        'mojito-debug-utils',
         'mojito-debug-addon',
         'mojito-composite-addon',
         'mojito-data-addon',

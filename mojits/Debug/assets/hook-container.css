@@ -60,7 +60,7 @@
 .hook-container.maximized > .header > .minimize.button {
     margin-right: 10px;
     font-size: 23px;
-    margin-top: -5px;
+    line-height: 15px;
     display:block;
 }
 
@@ -88,5 +88,27 @@
     background-color: #fff;
     padding: 3px;
     overflow-x: auto;
+    border-radius: 0 0 5px 5px;
+}
+
+.hook-container > .content-wrapper > .content  > .errors {
     border-radius: 5px;
+    border: 1px solid black;
+    background: #fffff4;
+    padding: 5px;
+    display: none;
+}
+
+.hook-container > .content-wrapper > .content  > .errors.enabled {
+    display: inline-block;
+}
+
+.hook-container > .content-wrapper > .content  > .errors > .line {
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 3px;
+}
+
+.hook-container > .content-wrapper > .content  > .errors > .title {
+    color: #833C3C;
 }

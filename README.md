@@ -17,7 +17,7 @@ mojito-debug is an npm package that helps developers debug the client/server sid
             "settings": ["master"],
             ...
             "middleware": [
-                "./node_modules/mojito-debug/middleware/debug.js"
+                "./node_modules/mojito-debug/middleware/mojito-debug.js"
             ],
             ...
         }]
@@ -99,6 +99,35 @@ Gets all the data associated with a debug hook.
 ```
 var hookData = ac.debug.get('hook-name');
 ```
+
+---
+
+<a name="ac.debug.error" href="#ac.debug.error">**ac.debug.error**</a> (hook, error, type)
+Shows an error on the rendered debug hook.
+* **hook** `string` - The name of the hook.
+* **error** `string` | `object` - The error to display for this hook. As an object it can include a string `message`, the error message; or an exception object, which is appended to the `message` and whose stack is shown when the user mouses over the error.
+* **type** `object` `optional` - The type of error. Can be 'error', 'warning' or any other defined css class.
+
+**Example**
+```
+ac.debug.error('hook-name', {
+    message: 'There was an exception'
+    exception: e
+});
+```
+
+---
+
+<a name="ac.debug.clear" href="#ac.debug.clear">**ac.debug.clear**</a> (hook, whitelist)
+Clears the debugData for the specified hook. It may be useful to clear debugging data after using it, to prevent it from being serialized between the server/client sides. This is especially important if the data is very large or contains cycles.
+* **hook** `string` - The name of the hook.
+* **whitelist** `array` `optional` - A list of properties to keep. The rest of the properties in debugData are deleted.
+
+**Example**
+```
+ac.debug.clear('hook-name', [
+    'required-property'
+]);
 
 ---
 

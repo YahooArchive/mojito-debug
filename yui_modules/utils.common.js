@@ -10,66 +10,53 @@
 YUI.add('mojito-debug-utils', function (Y, NAME) {
     'use strict';
 
-    var DEFAULT_DEPTH = 3;
     Y.namespace('mojito.debug').Utils = {
 
-        // TODO: refactor, make sure it can handle arrays
-        acyclicClone: function (object, depth) {
-            var _clone = function (object, clonedObject, depth, visited) {
-                var visitedCopy,
-                    child,
-                    key,
-                    i;
+        removeCycles: function (object, depthLimit, stringifyFunctions, acyclic) {
+            depthLimit = depthLimit || -1;
+            var _removeCycles = function (object, ancestors, path, depth) {
 
-                depth = depth === undefined || depth === null ? DEFAULT_DEPTH : depth;
-                for (key in object) {
-
-                    // sometimes fails due to accessibility
-                    try {
-                        child = object[key];
-                    } catch (e) {
-                        child = "[" + e.message + "]";
+                if (typeof object !== 'object' || object === null) {
+                    if (stringifyFunctions && Y.Lang.isFunction(object)) {
+                        return object.toString();
                     }
-                    //key = escape(key); // objects such as ac sometimes have illegal characters in key, causing issues
-                    if (typeof child === "object") {
-                        if (depth === 0) {
-                            clonedObject[key] = "[object]";
-                        } else {
-                            for (i = 0; i < visited.length; i++) {
-                                if (visited[i].object === child) {
-                                    clonedObject[key] = "[Cycle - " + visited[i].key + "]";
-                                    break;
-                                }
-                            }
-
-                            if (!clonedObject[key]) {
-                                clonedObject[key] = {};
-                                visitedCopy = [];
-                                for (i = 0; i < visited.length; i++) {
-                                    visitedCopy.push({object: visited[i].object, key: visited[i].key});
-                                }
-                                visitedCopy.push({object: child, key: key});
-                                _clone(child, clonedObject[key], depth - 1, visitedCopy);
-                            }
-                        }
-
-                    } else {
-                        if (typeof child === "function") {
-                            try {
-                                // get function argument list
-                                clonedObject[key] = "[function " + child.toString().match(/(\(.*?\))/)[1] + "]";
-                            } catch (e2) {
-                                clonedObject[key] = "[function]";
-                            }
-                        } else {
-                            clonedObject[key] = escape(child);
-                        }
-                    }
+                    return object;
                 }
-            }, clonedObject = {};
 
-            _clone(object, clonedObject, depth, [{object: object, key: "root"}]);
-            return clonedObject;
+                if (depth === depthLimit) {
+                    return '[' + (Y.Lang.isArray(object) ? 'Array[' + object.length + ']' :  object.constructor.name || 'Object') + ']';
+                }
+
+                if (!acyclic && ancestors.indexOf(object) !== -1) {
+                    return '[Cycle: ' + path + ']';
+                }
+
+                var newObject = Y.Lang.isArray(object) ? [] : {},
+                    newAncestors,
+                    ret;
+
+                if (!acyclic) {
+                    newAncestors = ancestors.slice(0);
+                    newAncestors.push(object);
+                }
+
+                Y.Object.each(object, function (value, key) {
+                    var newValue = _removeCycles(value, !acyclic && newAncestors.slice(0), path + '->' + key, depth + 1);
+                    if (newValue !== value) {
+                        newObject[key] = newValue;
+                    }
+                });
+
+                if (!Y.Object.isEmpty(newObject)) {
+                    Y.mix(newObject, object);
+                    ret = newObject;
+                } else {
+                    ret = object;
+                }
+
+                return ret;
+            };
+            return _removeCycles(object, [], 'root', 0);
         }
     };
 }, '0.1.0');

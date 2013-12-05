@@ -28,31 +28,35 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
 
             if (Y.Debug.mode !== 'hide') {
                 window.onload = function () {
-                    this.open();
-                    callback();
+                    this.open(false, callback);
                 }.bind(this);
             } else {
-                callback();
+                this.initCallback = callback;
             }
         },
 
-        open: function (anim) {
+        open: function (anim, done) {
             var self = this;
+
+            if (this.initCallback) {
+                done = this.initCallback;
+                delete this.initCallback;
+            }
 
             if (!self.window.document.body) {
                 self.window.onload = function () {
-                    self.toggle(anim, 'show');
+                    self._toggle(anim, 'show', done);
                 };
             } else {
-                self.toggle(anim, 'show');
+                self._toggle(anim, 'show', done);
             }
         },
 
         close: function (anim) {
-            this.toggle(anim, 'hide');
+            this._toggle(anim, 'hide');
         },
 
-        toggle: function (anim, state) {
+        _toggle: function (anim, state, done) {
             if (!state) {
                 this.opened = !this.opened;
             } else if (state === 'show') {
@@ -70,7 +74,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 easing: 'ease-out',
                 duration: anim ? 0.3 : 0,
                 height: this.opened ? this.window.document.body.scrollHeight + "px" : '0px'
-            });
+            }, done);
 
             if (this.opened) {
                 this.timeout = setInterval(function () {

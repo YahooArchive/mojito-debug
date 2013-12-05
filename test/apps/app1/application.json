@@ -4,13 +4,9 @@
     "viewEngine": {
         "cacheTemplates": false
     },
-    "yui": {
-        "config-disabled": {
-            "filter": "debug"
-        }
-    },
+
     "middleware": [
-        "./node_modules/mojito-debug/middleware/debug.js"
+        "./node_modules/mojito-debug/middleware/mojito-debug.js"
     ],
 
     "specs": {
@@ -24,6 +20,7 @@
             }
         },
         "debug": {
+            "enabled": true,
             "config": {
                 "hooks": {
                     "simple-hook": {
@@ -36,6 +33,13 @@
                     }
                 }
             }
+        }
+    }
+}, {
+    "settings": ["environment:production"],
+    "specs": {
+        "debug": {
+            "enabled": false
         }
     }
 }]

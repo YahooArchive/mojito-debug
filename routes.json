@@ -3,7 +3,7 @@
 
     "debugger": {
         "verbs": ["get"],
-        "path": "/debug*",
+        "path": "/debug/*",
         "call": "debug.index"
     }
 }]

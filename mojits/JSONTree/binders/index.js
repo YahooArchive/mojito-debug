@@ -17,8 +17,8 @@ YUI.add('JSONTreeBinderIndex', function (Y, NAME) {
         },
 
         "bind": function (node) {
-            var jsonTree = new Y.Debug.JSONTree(this.mojitProxy.data.get('json'), this.mojitProxy.data.get('options'));
+            var jsonTree = new Y.mojito.debug.JSONTree(this.mojitProxy.data.get('json'), this.mojitProxy.data.get('options'));
             Y.one("#" + this.mojitProxy._viewId + "_tree").append(jsonTree.get());
         }
     };
-}, '0.0.1', {requires: ['mojito', 'mojito-client', 'node', 'yui2-treeview', 'debug-jsonTree']});
+}, '0.0.1', {requires: ['mojito', 'mojito-client', 'node', 'yui2-treeview', 'mojito-debug-json-tree']});

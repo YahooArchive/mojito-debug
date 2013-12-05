@@ -12,7 +12,6 @@
 
 #mojits {
     margin-top: 30px;
-    margin-bottom: 30px;
 }
 
 #mojits input[type=button] {
@@ -22,12 +21,10 @@
 
 #mojits > fieldset {
     float: left;
+    margin-right: 40px;
+    margin-bottom: 20px
 }
 
 #mojits > fieldset > legend {
     font-weight: bold;
-}
-
-#child {
-    margin-left: 40px;
 }

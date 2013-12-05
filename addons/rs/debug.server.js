@@ -39,7 +39,7 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
         getAppConfig: function (ctx) {
             var key,
                 modifiedAppConfig,
-                newAppConfig;
+                debugAppConfig;
 
             ctx = this.rs.blendStaticContext(ctx);
             key = JSON.stringify(ctx || {});
@@ -48,20 +48,15 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
                 return;
             }
             modifiedAppConfig = Y.Do.originalRetVal;
-            newAppConfig = this.rs.config.readConfigYCB(APP_CONFIG_PATH, ctx);
+            debugAppConfig = this.rs.config.readConfigYCB(APP_CONFIG_PATH, ctx);
 
-            if (newAppConfig) {
-                Y.mix(modifiedAppConfig, newAppConfig, this.overwriteAppConfig, null, 0, true);
+            if (debugAppConfig) {
+                Y.mix(modifiedAppConfig, debugAppConfig, false, null, 0, true);
             }
 
             // Add debugger's routes.json to appConfig's routesFiles array.
             modifiedAppConfig.routesFiles = modifiedAppConfig.routesFiles || [];
             modifiedAppConfig.routesFiles.push(ROUTES_CONFIG_PATH);
-
-            // Add debugger's middleware to appConfig's middleware array.
-            //modifiedAppConfig.middleware = modifiedAppConfig.middleware || [];
-            //modifiedAppConfig.middleware.unshift("./node_modules/mojito-debug/middleware/debug.js");//MIDDLEWARE_PATH);
-            //debugger;
 
             this.rs._appConfigCache[key] = JSON.stringify(modifiedAppConfig);
             this._appConfigCache[key] = true;

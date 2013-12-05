@@ -4,7 +4,7 @@
  * See the accompanying LICENSE file for terms.
  */
 
-/*jslint browser: true, nomen: true */
+/*jslint browser: true, nomen: true, plusplus: true */
 /*global YUI */
 
 YUI.add('mojito-debug-addon', function (Y, NAME) {
@@ -28,15 +28,29 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             return root.globals.debug;
         }
 
+        if (!command.instance.config.hooks) {
+            return;
+        }
+
         self.ac = ac;
         self.mode = ac.params.params.url.hasOwnProperty('debug') ? '' :
                     ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
                         ac.params.params.url.hasOwnProperty('debug.json') ? 'json' : null;
 
         // Do nothing if the debug parameter is not present.
-        if (this.mode === null) {
+        if (self.mode === null) {
             return;
         }
+
+        self.enabled = true;
+
+        self.on = self._on;
+        self.log = self._log;
+        self.setContent = self._setContent;
+        self.appendContent = self._appendContent;
+        self.error = self._error;
+        self.clear = self._clear;
+        self.get = self._get;
 
         if (!isBrowser) {
             self.hooks = {};
@@ -59,7 +73,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
             // Determine all the active hooks specified in the debug parameter.
             // If no hook specified, use 'all' by default.
-            debugParam = ac.params.url('debug' + (this.mode ? '.' + this.mode : '')) || 'all';
+            debugParam = ac.params.url('debug' + (self.mode ? '.' + self.mode : '')) || 'all';
             self.urlHooks = debugParam.split(/\s*,\s*/);
             Y.Array.each(self.urlHooks, function (hook) {
                 if (!hook) {
@@ -77,12 +91,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 });
             });
         }
-
-        this.on = this._on;
-        this.log = this._log;
-        this.setContent = this._setContent;
-        this.appendContent = this._appendContent;
-        this.get = this._get;
     }
 
     DebugAddon.prototype = {
@@ -110,7 +118,14 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 }
             }
 
-            callback(this.hooks[hook].debugData);
+            try {
+                callback(this.hooks[hook].debugData);
+            } catch (e) {
+                this.error(hook, {
+                    message: 'Error in a callback passed to ac.debug.on',
+                    exception: e
+                }, 'error');
+            }
         },
 
         _log: function (line) {
@@ -139,6 +154,39 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }.bind(this));
         },
 
+        _error: function (hook, error, type) {
+            this.on(hook, function (debugData) {
+                var message = error,
+                    exception;
+
+                if (Y.Lang.isObject(error)) {
+                    message = error.message || '';
+                    exception = error.exception;
+                    message = message + (exception ? ((message ? ': ' : '') +
+                        '<span class="exception" title="' + exception.stack + '">' + exception.message + '</span>') : '');
+                }
+                debugData._errors.push('<div class="' + (type || '') + '">' + message + '</div>');
+                this.hooks[hook]._modified = true;
+                this.render(hook);
+            }.bind(this));
+        },
+
+        _clear: function (hookName, whitelist) {
+            var hook = this.hooks[hookName],
+                debugData = hook.debugData;
+            if (hook) {
+                hook.debugData = {
+                    _errors: debugData._errors,
+                    _append: debugData._append,
+                    _content: debugData._content
+                };
+
+                if (whitelist) {
+                    Y.mix(hook.debugData, debugData, false, whitelist);
+                }
+            }
+        },
+
         _get: function (hook) {
             return this.hooks[hook];
         },
@@ -146,7 +194,9 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         _render: function (hooks, done) {
             var self = this,
                 ac = self.ac,
-                hooksToRender = {};
+                hooksToRender = {},
+                numHooksToRender = 0,
+                mergedMeta = {};
 
             if (typeof hooks === 'function') {
                 done = hooks;
@@ -161,10 +211,12 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 }
                 // Render this hook if it's config specifies a base or a type.
                 if (self.hooks[hook].config && (self.config.hooks[hook].base || self.config.hooks[hook].type)) {
+                    numHooksToRender++;
                     hooksToRender[hook] = Y.clone(self.config.hooks[hook]);
                     hooksToRender[hook].params = hooksToRender[hook].params || {};
                     hooksToRender[hook].params.body = hooksToRender[hook].params.body || {};
                     hooksToRender[hook].params.body.debugData = self.hooks[hook].debugData;
+                    hooksToRender[hook].params.body.hook = hook;
                 } else {
                     self.hooks[hook]._modified = false;
                     self.hooks[hook]._rendered = true;
@@ -172,22 +224,41 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             });
 
             if (Y.Object.isEmpty(hooksToRender)) {
-                return done && done(Y.mix({}, self.hooks, true, hooks), {});
+                return done && done(Y.mix(self.hooks, self.hooks, true, hooks), mergedMeta);
             }
 
-            ac.composite.execute({
-                children: hooksToRender
-            }, function (renderedHooks, meta) {
-                Y.Object.each(meta.children, function (hookMeta, hook) {
-                    self.hooks[hook]._instanceId = hookMeta.instanceId;
-                });
-                Y.Object.each(renderedHooks, function (content, hook) {
-                    self.hooks[hook].debugData._content = content;
-                    self.hooks[hook]._modified = false;
-                    self.hooks[hook]._rendered = true;
-                });
+            Y.Object.each(hooksToRender, function (hook, hookName) {
+                var command = {
+                        instance: hook,
+                        action: hook.action || 'index',
+                        context: ac.context,
+                        params: hook.params
+                    },
+                    adapter = new Y.mojito.OutputBuffer(hookName + '-hook', function (err, data, meta) {
+                        var hook = self.hooks[hookName];
 
-                return done && done(Y.mix(self.hooks, self.hooks, true, hooks), meta);
+                        hook._instanceId = meta && meta.instanceId;
+                        hook.debugData._content = data;
+                        hook._modified = false;
+                        hook._rendered = true;
+
+                        mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
+
+                        if (err) {
+                            self.error(hookName, {
+                                message: 'Rendering failed',
+                                exception: err
+                            }, 'error');
+                        }
+
+                        if (--numHooksToRender === 0) {
+                            return done && done(Y.mix(self.hooks, self.hooks, true, hooks), mergedMeta);
+                        }
+                    });
+
+                Y.mix(adapter, ac._adapter);
+
+                ac._dispatch(command, adapter);
             });
         },
 
@@ -203,6 +274,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 config: self.config.hooks[hook],
                 _modified: true,
                 debugData: {
+                    _errors: [],
                     _content: null,
                     _append: []
                 }
@@ -219,6 +291,25 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             if (!this.config.hooks[hook].description) {
                 this.config.hooks[hook].description = this.config.hooks[hook].title + '.';
             }
+        },
+
+        _decycleHooks: function (hooks) {
+            var self = this,
+                serializedHooks = {},
+                JSON_DEPTH_LIMIT = 5;
+            Y.Object.each(hooks, function (hook, hookName) {
+                try {
+                    JSON.stringify(hook);
+                    // we know it has not cycles so just copy the object while stringifing functions, no depth limit.
+                    serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, 0, true, true);
+                } catch (e) {
+                    self.error(hookName, 'Unable to serialize debugData: "' + e.message
+                        + '". debugData has been decycled and limited to a depth of ' + (JSON_DEPTH_LIMIT - 1) + '.', 'warning');
+                    serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, JSON_DEPTH_LIMIT, true);
+                }
+            });
+
+            return serializedHooks;
         }
     };
 
@@ -227,7 +318,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
     if (isBrowser) {
         if (window.top.DEBUGGER) {
             Y.Debug = window.top.DEBUGGER;
-            //Y.Debug.binder._hookIntoMojitProxy.call(Y.Debug.binder, Y);
         } else {
             Y.Debug = {};
             Y.mix(Y.Debug, DebugAddon.prototype);
@@ -235,8 +325,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
     }
 }, '0.0.1', {
     requires: [
-        'mojito',
         'mojito-composite-addon',
-        'mojito-params-addon'
+        'mojito-params-addon',
+        'mojito-util'
     ]
 });

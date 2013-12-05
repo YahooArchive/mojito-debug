@@ -50,8 +50,11 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 self._hookRpc(self.app.window.YMojito.client);
                 self.debuggerNode.setStyle('display', 'block');
             });
+            if (self.mode === 'hide') {
+                self.debuggerNode.setStyle('display', 'block');
+            }
 
-            delete this.mojitProxy.data;
+            delete self.mojitProxy.data;
         },
 
         _hookMojitProxy: function () {
@@ -402,12 +405,13 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             newUrl = this._changeUrlHook(location.href, hook, action);
 
+            Y.Array.each(newUrl.hooks, function (urlHook) {
+                Array.prototype.push.apply(newHooks, self.config.aliases[urlHook] || [urlHook]);
+            });
+
             if (addHook) {
                 // Make sure all required hooks are present.
                 // Else the page must be refreshed.
-                Y.Array.each(newUrl.hooks, function (urlHook) {
-                    Array.prototype.push.apply(newHooks, self.config.aliases[urlHook] || [urlHook]);
-                });
 
                 reload = Y.some(newHooks, function (hook) {
                     if (!self.hooks[hook]) {
@@ -432,7 +436,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             } else {
                 // Close hook containers if necessary.
                 Y.Array.each(currentHooks, function (hook) {
-                    if (newUrl.hooks.indexOf(hook) === -1) {
+                    if (newHooks.indexOf(hook) === -1) {
                         var hookContainer = self.hooks[hook].hookContainer;
                         hookContainer.close(anim);
                     }
@@ -540,6 +544,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
     requires: [
         'history',
         'anim',
+        'mojito-debug-utils',
         'mojito-debug-addon',
         'mojito-debug-application',
         'mojito-action-context',

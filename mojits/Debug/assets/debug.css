@@ -63,6 +63,16 @@ h1, h2, h3, h4, h5, h6 {
     color: #108AC7;
 }
 
-.debug-log-hook {
+.content .exception {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #A31919;
+    font-weight: bold;
+}
+
+.content .exception:hover {
+    color: #D62323;
+
+.debug-log-hook > .content > .hook {
     font-family: Courier
 }

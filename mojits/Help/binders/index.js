@@ -57,9 +57,11 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
 
             // Expand aliases
             while (i < hooks.length) {
-                for (j = 0; j < config.aliases[hooks[i]]; j++) {
-                    hooks.unshift(config.aliases[hooks[i]][j]);
-                    i++;
+                if (config.aliases[hooks[i]]) {
+                    for (j = 0; j < config.aliases[hooks[i]].length; j++) {
+                        hooks.unshift(config.aliases[hooks[i]][j]);
+                        i++;
+                    }
                 }
                 i++;
             }
