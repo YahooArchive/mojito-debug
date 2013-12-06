@@ -58,25 +58,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                     action: 'debugJson'
                 };
             } else {
-                command.instance = {
-                    type: 'HTMLFrameMojit',
-                    config: {
-                        deploy: true,
-                        child: {
-                            type: 'Debug',
-                            action: 'debug'
-                        },
-                        assets: {
-                            top: {
-                                css: [
-                                    '/static/Debug/assets/debug.css',
-                                    '/static/Debug/assets/hook-container.css',
-                                    '/static/JSONTree/assets/css/json-tree.css'
-                                ]
-                            }
-                        }
-                    }
-                };
+                command.instance = ac.config.get('debug-specs');
             }
 
             Y.mix(adapter, ac._adapter);
@@ -156,6 +138,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         'mojito-debug-utils',
         'mojito-debug-addon',
         'mojito-composite-addon',
+        'mojito-config-addon',
         'mojito-data-addon',
         'mojito-util',
         'mojito-url-addon',

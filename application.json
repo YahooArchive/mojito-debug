@@ -6,6 +6,25 @@
             "enabled": true,
             "type": "Debug",
             "config": {
+                "debug-specs": {
+                    "type": "HTMLFrameMojit",
+                    "config": {
+                        "deploy": true,
+                        "child": {
+                            "type": "Debug",
+                            "action": "debug"
+                        },
+                        "assets": {
+                            "top": {
+                                "css": [
+                                    "/static/Debug/assets/debug.css",
+                                    "/static/Debug/assets/hook-container.css",
+                                    "/static/JSONTree/assets/css/json-tree.css"
+                                ]
+                            }
+                        }
+                    }
+                },
                 "hooks": {
                    "help": {
                         "title": "Help",
