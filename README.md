@@ -128,6 +128,7 @@ Clears the debugData for the specified hook. It may be useful to clear debugging
 ac.debug.clear('hook-name', [
     'required-property'
 ]);
+```
 
 ---
 
