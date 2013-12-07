@@ -52,7 +52,7 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         Y.mix(node, HookContainer.prototype);
 
         if (hook) {
-            this.update(hook);
+            node.update(hook);
         }
 
         return node;

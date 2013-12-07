@@ -74,15 +74,14 @@ YUI.add('mojito-debug-hook-content', function (Y) {
             }
 
             if (!appendIsEmpty) {
+                if (this.isEmpty) {
+                    hook.set('innerHTML', '');
+                }
                 Y.Array.each(debugData._append, function (content) {
-                    this.appendLine(hook, content);
+                    this._appendLine(hook, content);
                 }.bind(this));
                 debugData._append = [];
                 this.isEmpty = false;
-            }
-
-            if (contentIsEmpty && appendIsEmpty) {
-                this.isEmpty = true;
             }
 
             if (errors.hasClass('enabled') && !this.isEmpty) {

@@ -28,10 +28,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             return root.globals.debug;
         }
 
-        if (!command.instance.config.hooks) {
-            return;
-        }
-
         self.ac = ac;
         self.mode = ac.params.params.url.hasOwnProperty('debug') ? '' :
                     ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
@@ -42,17 +38,11 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             return;
         }
 
-        self.enabled = true;
-
-        self.on = self._on;
-        self.log = self._log;
-        self.setContent = self._setContent;
-        self.appendContent = self._appendContent;
-        self.error = self._error;
-        self.clear = self._clear;
-        self.get = self._get;
-
         if (!isBrowser) {
+            if (!command.instance.config.hooks) {
+                return;
+            }
+
             self.hooks = {};
 
             // Get config, make sure the help hook appears first.
@@ -91,6 +81,16 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 });
             });
         }
+
+        self.enabled = true;
+
+        self.on = self._on;
+        self.log = self._log;
+        self.setContent = self._setContent;
+        self.appendContent = self._appendContent;
+        self.error = self._error;
+        self.clear = self._clear;
+        self.get = self._get;
     }
 
     DebugAddon.prototype = {
@@ -237,8 +237,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     adapter = new Y.mojito.OutputBuffer(hookName + '-hook', function (err, data, meta) {
                         var hook = self.hooks[hookName];
 
-                        hook._instanceId = meta && meta.instanceId;
                         hook.debugData._content = data;
+                        hook._viewId = meta.view.id;
                         hook._modified = false;
                         hook._rendered = true;
 

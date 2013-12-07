@@ -72,6 +72,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .content .exception:hover {
     color: #D62323;
+}
 
 .debug-log-hook > .content > .hook {
     font-family: Courier

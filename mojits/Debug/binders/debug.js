@@ -64,7 +64,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 var mojitProxy = new OriginalMojitProxy(config);
                 // Check if this binder belongs to a hook
                 Y.Object.each(self.hooks, function (hook, hookName) {
-                    if (hook._instanceId === config.instanceId) {
+                    if (hook._viewId === config.viewId) {
                         hook.binder = mojitProxy._binder;
                     }
                 });
@@ -296,7 +296,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             self.debuggerNode = Y.one('#debugger');
 
-            Y.Array.each(['composite', 'params', 'assets'], function (addon) {
+            Y.Array.each(['params', 'assets'], function (addon) {
                 ac[addon] = new Y.mojito.addons.ac[addon](command, adapter, ac);
             });
 
@@ -339,6 +339,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 } else {
                     hook.hookContainer.update(hook);
                 }
+                hook._rendered = false;
             });
         },
 
