@@ -128,6 +128,7 @@ Clears the debugData for the specified hook. It may be useful to clear debugging
 ac.debug.clear('hook-name', [
     'required-property'
 ]);
+```
 
 ---
 
@@ -147,7 +148,7 @@ ac.debug.render(['hook1', 'hook2'], function (hooks) {
 
 <a name="Y.debug" href="#Y.debug">**Y.Debug.***</a> `client-side only`
 
-On the client side, ac.debug can conviniently be accessed through [`Y.Debug`](#Y.debug) within any YUI module that includes `mojito-debug-addon`.
+On the client side, ac.debug can conveniently be accessed through [`Y.Debug`](#Y.debug) within any YUI module that includes `mojito-debug-addon`.
 
 ## Debugging
 
@@ -181,11 +182,11 @@ The configuration also accepts `aliases`, representing groups of debug hooks. Al
         "hooks": {
             "simple-hook": {
                 "title": "Simple Hook",
-                "description: "This is a simple debug hook that doesnt require a mojit to be rendered."
+                "description": "This is a simple debug hook that doesn't require a mojit to be rendered."
             },
             "mojit-hook": {
                 "title": "Mojit Hook",
-                "description: "This debug hook is rendered by the 'MojitHook' mojit.",
+                "description": "This debug hook is rendered by the 'MojitHook' mojit.",
                 "type": "MojitHook"
             }
         },
