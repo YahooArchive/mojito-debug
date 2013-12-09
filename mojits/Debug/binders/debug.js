@@ -47,7 +47,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 window.document.getElementById = function (id) {
                     return getElementById.call(appDocument, id) || getElementById.call(debuggerDocument, id);
                 };
-                self._hookRpc(self.app.window.YMojito.client);
+                if (self.app.window.YMojito) {
+                    self._hookRpc(self.app.window.YMojito.client);
+                }
                 self.debuggerNode.setStyle('display', 'block');
             });
             if (self.mode === 'hide') {

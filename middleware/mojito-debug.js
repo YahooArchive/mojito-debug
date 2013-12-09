@@ -22,6 +22,13 @@ module.exports = function (midConfig) {
                 console.warn('Request attempting to access debugger route directly.');
 
             } else if (/^\/.*?[\?&]debug(\.[^=&]+)?(=[^&]*)?(&|$)/.test(req.url)) {
+                // Set mojito-debug global to an object that indicates that the debugger is enabled and
+                // what was the original url.
+                req.globals = req.globals || {};
+                req.globals['mojito-debug'] = {}
+                req.globals['mojito-debug'].originalUrl = req.url;
+
+                // Set the request url to the debugger route which will handle the request.
                 req.url = '/debug' + req.url;
             }
         }

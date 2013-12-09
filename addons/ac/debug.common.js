@@ -22,10 +22,10 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         if (!root.globals) {
             root.globals = {};
         }
-        if (!root.globals.debug) {
-            root.globals.debug = self;
+        if (!root.globals[NAME]) {
+            root.globals[NAME] = self;
         } else {
-            return root.globals.debug;
+            return root.globals[NAME];
         }
 
         self.ac = ac;

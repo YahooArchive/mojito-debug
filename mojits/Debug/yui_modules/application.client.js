@@ -10,28 +10,40 @@
 YUI.add('mojito-debug-application', function (Y, NAME) {
     'use strict';
 
-    function DebugApplication(iframe, appHtml) {
+    function DebugApplication(iframe, html) {
         this.iframe = iframe;
         this.window = iframe._node.contentWindow;
-        this.window.document.open();
-        this.window.document.write(appHtml);
-        this.window.document.close();
-
         this.opened = false;
+
+        this.window.document.open();
+        this.window.document.write(html);
+        this.window.document.close();
     }
 
     DebugApplication.prototype = {
 
         init: function (callback) {
-            var iframe = this.iframe,
-                window = this.window;
+            var self = this,
+                window = self.window,
+                document = window.document,
+                done;
 
-            if (Y.Debug.mode !== 'hide') {
-                window.onload = function () {
-                    this.open(false, callback);
-                }.bind(this);
-            } else {
+            if (Y.Debug.mode === 'hide') {
                 this.initCallback = callback;
+            } else {
+                if (window.addEventListener) {
+                    done = function () {
+                        self.open(false, callback);
+                        window.removeEventListener('load', done, false);
+                    };
+                    window.addEventListener('load', done, false);
+                } else if (window.attachEvent) {
+                    done = function () {
+                        self.open(false, callback);
+                        window.detachEvent('load', done);
+                    };
+                    window.attachEvent('load', done);
+                }
             }
         },
 
@@ -73,13 +85,17 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             this.iframe.transition({
                 easing: 'ease-out',
                 duration: anim ? 0.3 : 0,
-                height: this.opened ? this.window.document.body.scrollHeight + "px" : '0px'
-            }, done);
+                height: this.opened ? this.window.document.body.scrollHeight + 'px' : '0px'
+            });
+
+            if (done) {
+                done();
+            }
 
             if (this.opened) {
                 this.timeout = setInterval(function () {
                     try {
-                        this.iframe.setStyle('height', this.window.document.body.scrollHeight + "px");
+                        this.iframe.setStyle('height', this.window.document.body.scrollHeight + 'px');
                     } catch (e) {
                         clearTimeout(this.timeout);
                     }
