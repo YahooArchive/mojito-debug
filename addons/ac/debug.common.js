@@ -162,9 +162,15 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 if (Y.Lang.isObject(error)) {
                     message = error.message || '';
                     exception = error.exception;
+
+                    Y.log(message + (exception ? ': ' + exception.stack : ''), 'error');
+
                     message = message + (exception ? ((message ? ': ' : '') +
                         '<span class="exception" title="' + exception.stack + '">' + exception.message + '</span>') : '');
+                } else {
+                    Y.log(error, 'error');
                 }
+
                 debugData._errors.push('<div class="' + (type || '') + '">' + message + '</div>');
                 this.hooks[hook]._modified = true;
                 this.render(hook);
@@ -173,7 +179,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
         _clear: function (hookName, whitelist) {
             var hook = this.hooks[hookName],
-                debugData = hook.debugData;
+                debugData = hook && hook.debugData;
             if (hook) {
                 hook.debugData = {
                     _errors: debugData._errors,
@@ -205,21 +211,22 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
             hooks = !hooks ? Y.Object.keys(self.hooks) : typeof hooks === 'string' ? [hooks] : hooks;
 
-            Y.Array.each(hooks, function (hook) {
-                if (!self.hooks[hook] || !self.hooks[hook]._modified) {
+            Y.Array.each(hooks, function (hookName) {
+                var hook = self.hooks[hookName];
+                if (!hook || !hook._modified) {
                     return;
                 }
                 // Render this hook if it's config specifies a base or a type.
-                if (self.hooks[hook].config && (self.config.hooks[hook].base || self.config.hooks[hook].type)) {
+                if (hook.config && (hook.config.base || hook.config.type)) {
                     numHooksToRender++;
-                    hooksToRender[hook] = Y.clone(self.config.hooks[hook]);
-                    hooksToRender[hook].params = hooksToRender[hook].params || {};
-                    hooksToRender[hook].params.body = hooksToRender[hook].params.body || {};
-                    hooksToRender[hook].params.body.debugData = self.hooks[hook].debugData;
-                    hooksToRender[hook].params.body.hook = hook;
+                    hooksToRender[hookName] = hook.config;
+                    hooksToRender[hookName].params = hook.params || {};
+                    hooksToRender[hookName].params.body = (hook.params && hook.params.body) || {};
+                    hooksToRender[hookName].params.body.debugData = hook.debugData;
+                    hooksToRender[hookName].params.body.hook = hookName;
                 } else {
-                    self.hooks[hook]._modified = false;
-                    self.hooks[hook]._rendered = true;
+                    hook._modified = false;
+                    hook._rendered = true;
                 }
             });
 
