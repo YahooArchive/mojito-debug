@@ -2,7 +2,7 @@
     "settings": ["master"],
     "actionTimeout": 0,
     "viewEngine": {
-        "cacheTemplates": false
+        "cacheTemplates": true
     },
 
     "middleware": [

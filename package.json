@@ -4,7 +4,8 @@
     "description": "mojito-debug helps developers debug their applications through debug hooks, whose results are shown on the client-side under the application when the 'debug' parameter appears in the URL.",
     "author": "Albert Jimenez <jimenez@yahoo-inc.com>",
     "dependencies": {
-        "ycb": "1.0.x"
+        "ycb": "1.0.x",
+        "mojito-waterfall": "0.0.x"
     },
     "devDependencies": {
         "mojito": "0.8.x",

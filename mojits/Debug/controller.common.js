@@ -14,6 +14,23 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         index: function (ac) {
             var self = this;
 
+            // Create a waterfall and use the waterfall custom dispatcher.
+            ac.debug.on('waterfall', function (debugData) {
+                var waterfall = new Y.mojito.Waterfall({
+                        stats: {
+                            // Only show stats related to mojito internals.
+                            profileFilter: 'profileType === "mojito"'
+                        }
+                    }),
+                    dispatcher = Y.mix({}, Y.mojito.Waterfall.Dispatcher);
+
+                debugData.waterfall = waterfall;
+                debugData.originalDispatch = ac._dispatch;
+
+                dispatcher.init(ac.dispatcher.store, ac.dispatcher.tunnel, waterfall);
+                ac._dispatch = dispatcher.dispatch.bind(dispatcher);
+            });
+
             self.runApplication(ac, function (err, appHtml) {
                 ac.debug.appHtml = appHtml;
                 self.runDebugger(ac, function (err, data, meta) {
@@ -32,6 +49,22 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                     data: '',
                     done: function (data) {
                         this.data += data;
+
+                        ac.debug.on('waterfall', function (debugData, hook) {
+                            // Get waterfall gui object and make it available through debugData
+                            debugData.waterfall = debugData.waterfall.getGui();
+                            // Add the waterfall gui to waterfall's parameters since the Waterfall
+                            // controller requires it.
+                            hook.params = {
+                                body: {
+                                    waterfall: debugData.waterfall
+                                }
+                            };
+
+                            // Revert the original dispatch function.
+                            ac._dispatch = debugData.originalDispatch;
+                        });
+
                         callback(null, this.data);
                     },
                     flush: function (data) {
@@ -143,6 +176,8 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         'mojito-util',
         'mojito-url-addon',
         'mojito-params-addon',
-        'mojito-http-addon'
+        'mojito-http-addon',
+        'mojito-waterfall',
+        'mojito-waterfall-dispatcher'
     ]
 });

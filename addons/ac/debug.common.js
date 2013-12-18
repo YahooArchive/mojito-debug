@@ -119,7 +119,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }
 
             try {
-                callback(this.hooks[hook].debugData);
+                callback(this.hooks[hook].debugData, this.hooks[hook]);
             } catch (e) {
                 this.error(hook, {
                     message: 'Error in a callback passed to ac.debug.on',

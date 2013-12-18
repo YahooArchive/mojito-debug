@@ -36,6 +36,12 @@
                         "title": "Log",
                         "class": "debug-log-hook",
                         "description": "Displays logging information."
+                    },
+
+                    "waterfall": {
+                        "title": "Waterfall",
+                        "description": "Displays a visualization of time performance for this request.",
+                        "type": "Waterfall"
                     }
                 },
                 "aliases": {
