@@ -154,7 +154,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }.bind(this));
         },
 
-        _error: function (hook, error, type) {
+        _error: function (hook, error, type, name) {
             this.on(hook, function (debugData) {
                 var message = error,
                     exception;
@@ -163,7 +163,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     message = error.message || '';
                     exception = error.exception;
 
-                    Y.log(message + (exception ? ': ' + exception.stack : ''), 'error');
+                    Y.log(message + (exception ? ': ' + exception.stack : ''), 'error', name || NAME);
 
                     message = message + (exception ? ((message ? ': ' : '') +
                         '<span class="exception" title="' + exception.stack + '">' + exception.message + '</span>') : '');
@@ -244,19 +244,20 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     adapter = new Y.mojito.OutputBuffer(hookName + '-hook', function (err, data, meta) {
                         var hook = self.hooks[hookName];
 
-                        hook.debugData._content = data;
-                        hook._viewId = meta.view.id;
-                        hook._modified = false;
-                        hook._rendered = true;
-
-                        mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
-
                         if (err) {
                             self.error(hookName, {
                                 message: 'Rendering failed',
                                 exception: err
                             }, 'error');
+                        } else {
+                            mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
+
+                            hook.debugData._content = data;
+                            hook._viewId = meta.view.id;
                         }
+
+                        hook._modified = false;
+                        hook._rendered = true;
 
                         if (--numHooksToRender === 0) {
                             return done && done(Y.mix(self.hooks, self.hooks, true, hooks), mergedMeta);
