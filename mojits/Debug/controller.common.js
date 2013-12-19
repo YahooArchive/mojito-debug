@@ -19,7 +19,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 var waterfall = new Y.mojito.Waterfall({
                         stats: {
                             // Only show stats related to mojito internals.
-                            profileFilter: 'profileType === "mojito"'
+                            profileFilter: 'level === "mojito"'
                         }
                     }),
                     dispatcher = Y.mix({}, Y.mojito.Waterfall.Dispatcher);
