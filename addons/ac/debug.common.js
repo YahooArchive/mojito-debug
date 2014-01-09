@@ -132,7 +132,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             var hook = 'log';
             this.on(hook, function (debugData) {
                 debugData._append.push(line);
-                this.hooks[hook]._modified = true;
                 this.render(hook);
             }.bind(this));
 
@@ -141,7 +140,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         _setContent: function (hook, content) {
             this.on(hook, function (debugData) {
                 debugData._content = content;
-                this.hooks[hook]._modified = true;
                 this.render(hook);
             }.bind(this));
         },
@@ -149,7 +147,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         _appendContent: function (hook, content) {
             this.on(hook, function (debugData) {
                 debugData._append.push(content);
-                this.hooks[hook]._modified = true;
                 this.render(hook);
             }.bind(this));
         },
@@ -172,7 +169,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 }
 
                 debugData._errors.push('<div class="' + (type || '') + '">' + message + '</div>');
-                this.hooks[hook]._modified = true;
                 this.render(hook);
             }.bind(this));
         },
@@ -213,19 +209,29 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
             Y.Array.each(hooks, function (hookName) {
                 var hook = self.hooks[hookName];
-                if (!hook || !hook._modified) {
+                if (!hook) {
                     return;
                 }
-                // Render this hook if it's config specifies a base or a type.
-                if (hook.config && (hook.config.base || hook.config.type)) {
+
+                if (isBrowser && hook.binder && hook.binder.render) {
+                    // This is the client side and the hook has a binder with a render function,
+                    // which is used to render this hook.
+                    hook.binder.render(hook.node, hook.debugData);
+                    hook._rendered = true;
+                } else if (hook.config && (hook.config.base || hook.config.type)) {
+                    // Render this hook if it's config specifies a base or a type.
+
                     numHooksToRender++;
-                    hooksToRender[hookName] = hook.config;
+                    // It's important to clone the config instead of using it directly,
+                    // because it should not be modified; otherwise there can be interference,
+                    // and the added params will be sent to the client.
+                    hooksToRender[hookName] = Y.clone(hook.config);
                     hooksToRender[hookName].params = hook.params || {};
                     hooksToRender[hookName].params.body = (hook.params && hook.params.body) || {};
                     hooksToRender[hookName].params.body.debugData = hook.debugData;
                     hooksToRender[hookName].params.body.hook = hookName;
                 } else {
-                    hook._modified = false;
+                    // This is a simple hook that will rendered according to _content/_append in debugData.
                     hook._rendered = true;
                 }
             });
@@ -256,7 +262,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                             hook._viewId = meta.view.id;
                         }
 
-                        hook._modified = false;
                         hook._rendered = true;
 
                         if (--numHooksToRender === 0) {
@@ -280,7 +285,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
             self.hooks[hook] = {
                 config: self.config.hooks[hook],
-                _modified: true,
                 debugData: {
                     _errors: [],
                     _content: null,
@@ -306,6 +310,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 serializedHooks = {},
                 JSON_DEPTH_LIMIT = 5;
             Y.Object.each(hooks, function (hook, hookName) {
+                // TODO: revisit converting the json into an object that references itself.
                 try {
                     JSON.stringify(hook);
                     // we know it has not cycles so just copy the object while stringifing functions, no depth limit.
