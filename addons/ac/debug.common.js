@@ -118,6 +118,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 }
             }
 
+            this.hooks[hook]._modified = true;
+
             try {
                 callback(this.hooks[hook].debugData, this.hooks[hook]);
             } catch (e) {
@@ -205,22 +207,37 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 hooks = null;
             }
 
-            hooks = !hooks ? Y.Object.keys(self.hooks) : typeof hooks === 'string' ? [hooks] : hooks;
+
+            if (hooks) {
+                hooks = typeof hooks === 'string' ? [hooks] : hooks;
+                // Mark hooks that were specifically specified as modified to make sure they are rendered.
+                Y.Array.each(hooks, function (hook) {
+                    self.hooks[hook]._modified = true;
+                });
+            } else {
+                hooks = Y.Object.keys(self.hooks);
+            }
 
             Y.Array.each(hooks, function (hookName) {
                 var hook = self.hooks[hookName];
-                if (!hook) {
+                if (!hook || !hook._modified) {
                     return;
                 }
 
-                if (isBrowser && hook.binder && hook.binder.render) {
-                    // This is the client side and the hook has a binder with a render function,
+                hook._modified = false;
+
+                if (hook.debugData._errors.length > 0) {
+                    // Do not attempt to render this hook if it has errors,
+                    // otherwise the rendering may result in more errors,
+                    // resulting in an infinite loop.
+                    hook._rendered = true;
+                } else if (hook.binder && hook.binder.render) {
+                    // The hook has a binder with a render function,
                     // which is used to render this hook.
                     hook.binder.render(hook.node, hook.debugData);
                     hook._rendered = true;
                 } else if (hook.config && (hook.config.base || hook.config.type)) {
                     // Render this hook if it's config specifies a base or a type.
-
                     numHooksToRender++;
                     // It's important to clone the config instead of using it directly,
                     // because it should not be modified; otherwise there can be interference,
@@ -251,10 +268,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                         var hook = self.hooks[hookName];
 
                         if (err) {
-                            self.error(hookName, {
-                                message: 'Rendering failed',
-                                exception: err
-                            }, 'error');
+                            self.error(hookName, 'Rendering failed (check for server-side errors): ' + err, 'error');
                         } else {
                             mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
 
@@ -313,7 +327,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 // TODO: revisit converting the json into an object that references itself.
                 try {
                     JSON.stringify(hook);
-                    // we know it has not cycles so just copy the object while stringifing functions, no depth limit.
+                    // we know it has no cycles so just copy the object while stringifing functions, no depth limit.
                     serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, 0, true, true);
                 } catch (e) {
                     self.error(hookName, 'Unable to serialize debugData: "' + e.message

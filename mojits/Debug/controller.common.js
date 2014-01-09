@@ -193,6 +193,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 });
 
             ac.debug.hooks = hooks;
+            command.context = ac.context;
 
             Y.mix(adapter, ac._adapter);
             ac._dispatch(command, adapter);

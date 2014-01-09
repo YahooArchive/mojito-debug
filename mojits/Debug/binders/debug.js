@@ -46,6 +46,8 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 window.document.getElementById = function (id) {
                     return getElementById.call(appDocument, id) || getElementById.call(debuggerDocument, id);
                 };
+
+                // Make sure that tunnel events by the application are handled by the debugger controller on the server.
                 if (self.app.window.YMojito) {
                     self._hookRpc(self.app.window.YMojito.client);
                 }
@@ -80,7 +82,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 originalRpc = MojitoClient.dispatcher.rpc,
                 debuggerProxy = self.mojitProxy;
 
-            MojitoClient.dispatcher.rpc = client.dispatcher.rpc = function (command, adapter) {
+            client.dispatcher.rpc = function (command, adapter) {
                 var params,
                     url = {},
                     invokeOptions;
@@ -105,7 +107,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                         params: {
                             url: url,
                             body: {
-                                hooks: self._getHooks(),
+                                hooks: Y.Debug._decycleHooks(self._getHooks()),
                                 config: self.config,
                                 command: command
                             }
@@ -132,9 +134,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 hooks = {};
             Y.Object.each(self.hooks, function (hook, hookName) {
                 hooks[hookName] = {};
-                Y.mix(hooks[hookName], hook);
-                delete hooks[hookName].hookContainer;
-                delete hooks[hookName].binder;
+                Y.mix(hooks[hookName], hook, false, ['config', 'debugData']);
             });
             return hooks;
         },
@@ -306,6 +306,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             // Allow client side YUI modules to use the debug addon through Y.Debug
             Y.Debug = window.top.DEBUGGER = new Y.mojito.addons.ac.debug(command, adapter, ac);
             Y.Debug.binder = self;
+
+            // Make sure that tunnel events by the debugger are handled by the debugger controller on the server.
+            self._hookRpc(MojitoClient);
 
             // Make render method public only on client side.
             Y.Debug.render = function (hooks) {
