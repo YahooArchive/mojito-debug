@@ -39,8 +39,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
         bind: function (node) {
             var self = this;
-            self.app = new Y.mojito.debug.Application(node.one('#app'), this.mojitProxy.data.get('app'));
-            self.app.init(function () {
+            self.app = new Y.mojito.debug.Application(node.one('#app'), this.flushes, function () {
                 var getElementById = window.document.getElementById,
                     debuggerDocument = window.document,
                     appDocument = self.app.window.document;
@@ -67,6 +66,8 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 // Check if this binder belongs to a hook
                 Y.Object.each(self.hooks, function (hook, hookName) {
                     if (hook._viewId === config.viewId) {
+                        hook.mojitProxy = mojitProxy;
+                        hook.node = mojitProxy._node;
                         hook.binder = mojitProxy._binder;
                     }
                 });
@@ -320,6 +321,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             this.hooks    = Y.Debug.hooks    = mojitProxy.data.get('hooks');
             this.urlHooks = Y.Debug.urlHooks = mojitProxy.data.get('urlHooks');
             this.config   = Y.Debug.config   = mojitProxy.data.get('config');
+            this.flushes  = Y.Debug.flushes  = mojitProxy.data.get('flushes');
 
             mojitProxy.config = this.config;
 
@@ -531,7 +533,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         },
 
         getUrlParams: function (query) {
-            var paramArray = (query || '').split(),
+            var paramArray = (query || '').split('&'),
                 paramMap = {};
             Y.Array.each(paramArray, function (param) {
                 var parts = param.split('=');

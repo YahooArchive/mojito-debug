@@ -29,10 +29,18 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
                 dispatcher.init(ac.dispatcher.store, ac.dispatcher.tunnel, waterfall);
                 ac._dispatch = dispatcher.dispatch.bind(dispatcher);
+
+                debugData.appStart = process.hrtime();
             });
 
-            self.runApplication(ac, function (err, appHtml) {
+            self.runApplication(ac, function (err, flushes) {
+                var appHtml = '';
+                Y.Array.each(flushes, function (flush) {
+                    flush.time = flush.time[0] * 1e3 + flush.time[1] / 1e6;
+                    appHtml += flush.data;
+                });
                 ac.debug.appHtml = appHtml;
+                ac.debug.flushes = flushes;
                 self.runDebugger(ac, function (err, data, meta) {
                     ac.done(data, meta);
                 });
@@ -46,13 +54,42 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                     params: ac.params.params
                 },
                 adapter = {
-                    data: '',
+                    // Keeps track of all the different flushes and their times relative to the first flush.
+                    flushes: [],
+                    flush: function (data) {
+                        this._flush(data, true);
+                    },
                     done: function (data) {
-                        this.data += data;
+                        this._flush(data);
+                    },
+                    _flush: function (data, more) {
+                        this.flushes.push({
+                            data: data,
+                            time: this.firstFlushTime ? process.hrtime(this.firstFlushTime) : [0, 0]
+                        });
+
+                        if (!this.firstFlushTime) {
+                            this.firstFlushTime = process.hrtime();
+                        }
+
+                        if (more) {
+                            return;
+                        }
+
+                        // Last flush.
 
                         ac.debug.on('waterfall', function (debugData, hook) {
+                            // Revert the original dispatch function.
+                            ac._dispatch = debugData.originalDispatch;
+
                             // Get waterfall gui object and make it available through debugData
                             debugData.waterfall = debugData.waterfall.getGui();
+
+                            // The time taken in ms for the first flush relative to the absolute start time of the
+                            // server side waterfall.
+                            debugData.serverFlushTime = (this.firstFlushTime[0] * 1e9 + this.firstFlushTime[1]
+                                                     - debugData.waterfall.absoluteStartTime) / 1e6;
+
                             // Add the waterfall gui to waterfall's parameters since the Waterfall
                             // controller requires it.
                             hook.params = {
@@ -60,15 +97,9 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                                     waterfall: debugData.waterfall
                                 }
                             };
+                        }.bind(this));
 
-                            // Revert the original dispatch function.
-                            ac._dispatch = debugData.originalDispatch;
-                        });
-
-                        callback(null, this.data);
-                    },
-                    flush: function (data) {
-                        this.data += data;
+                        callback(null, this.flushes);
                     },
                     error: function (err) {
                         callback(err);
@@ -102,6 +133,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             // Render all hooks.
             ac.debug._render(function (hooks, hooksMeta) {
                 ac.data.set('app', ac.debug.appHtml);
+                ac.data.set('flushes', ac.debug.flushes);
                 ac.data.set('hooks', ac.debug._decycleHooks(hooks));
                 ac.data.set('urlHooks', ac.debug.urlHooks);
                 ac.data.set('mode', ac.debug.mode);

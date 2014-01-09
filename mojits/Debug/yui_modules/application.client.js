@@ -10,14 +10,50 @@
 YUI.add('mojito-debug-application', function (Y, NAME) {
     'use strict';
 
-    function DebugApplication(iframe, html) {
+    function DebugApplication(iframe, flushes, callback) {
+        var self = this,
+            startTime;
         this.iframe = iframe;
         this.window = iframe._node.contentWindow;
-        this.opened = false;
+        this.opened = Y.Debug.mode !== 'hide';
 
-        this.window.document.open();
-        this.window.document.write(html);
-        this.window.document.close();
+        self.window.document.open();
+
+        Y.Array.each(flushes, function (flush, i) {
+            var writeFlushData = function () {
+                if (i === 0) {
+                    startTime = Y.mojito.Waterfall.now();
+                    Y.Debug.on('waterfall', function (debugData) {
+                        debugData.clientAbsoluteStartTime = Y.mojito.Waterfall.now();
+                    });
+                }
+
+                var currentTime = Y.mojito.Waterfall.now(),
+                    delay = currentTime - startTime;
+
+                // Sometimes setTimeout calls the callback before the specified delay.
+                // If this happens then set another timeout with the remaining delay.
+                // This ensures that flush data are not written ahead of time.
+                // Runtime tests show that doing this makes the writing of flush data
+                // at most 1 ms late.
+                if (delay < flush.time) {
+                    setTimeout(writeFlushData, flush.time - delay);
+                    return;
+                }
+
+                self.window.document.write(flush.data);
+                if (self.opened) {
+                    self.iframe.setStyle('height', 'auto');
+                    self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
+                }
+                if (i === flushes.length - 1) {
+                    self.window.document.close();
+                    self.init(callback);
+                }
+            };
+
+            setTimeout(writeFlushData, flush.time);
+        });
     }
 
     DebugApplication.prototype = {
@@ -31,15 +67,17 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             if (Y.Debug.mode === 'hide') {
                 this.initCallback = callback;
             } else {
+
+                self.open(false);
                 if (window.addEventListener) {
                     done = function () {
-                        self.open(false, callback);
+                        callback();//self.open(false, callback);
                         window.removeEventListener('load', done, false);
                     };
                     window.addEventListener('load', done, false);
                 } else if (window.attachEvent) {
                     done = function () {
-                        self.open(false, callback);
+                        callback();//self.open(false, callback);
                         window.detachEvent('load', done);
                     };
                     window.attachEvent('load', done);
@@ -109,6 +147,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
     Y.namespace('mojito.debug').Application = DebugApplication;
 }, '0.0.1', {
     requires: [
-        'mojito-debug-addon'
+        'mojito-debug-addon',
+        'mojito-waterfall'
     ]
 });
