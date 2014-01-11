@@ -45,7 +45,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             self.node = node;
 
-            self.app = new Y.mojito.debug.Application(self.applicationNode, self.flushes, function () {
+            self.app = new Y.mojito.debug.Application(self.applicationNode, self.flushes, self.config['simulate-flushing'], function () {
                 var getElementById = window.document.getElementById,
                     debuggerDocument = window.document,
                     appDocument = self.app.window.document;

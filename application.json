@@ -6,6 +6,7 @@
             "enabled": true,
             "type": "Debug",
             "config": {
+                "simulate-flushing": false,
                 "debug-specs": {
                     "type": "HTMLFrameMojit",
                     "config": {

@@ -10,7 +10,7 @@
 YUI.add('mojito-debug-application', function (Y, NAME) {
     'use strict';
 
-    function DebugApplication(iframe, flushes, callback) {
+    function DebugApplication(iframe, flushes, simulateFlushing, callback) {
         var self = this,
             startTime;
 
@@ -22,45 +22,46 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
         self.window.document.open();
 
         Y.Array.each(flushes, function (flush, i) {
-            var writeFlushData = function () {
-                if (i === 0) {
-                    startTime = Y.mojito.Waterfall.now();
-                    Y.Debug.on('waterfall', function (debugData) {
-                        debugData.clientAbsoluteStartTime = Y.mojito.Waterfall.now();
-                    });
-                }
+            var flushTime = simulateFlushing ? flush.time : 0,
+                writeFlushData = function () {
+                    if (i === 0) {
+                        startTime = Y.mojito.Waterfall.now();
+                        Y.Debug.on('waterfall', function (debugData) {
+                            debugData.clientAbsoluteStartTime = Y.mojito.Waterfall.now();
+                        });
+                    }
 
-                var currentTime = Y.mojito.Waterfall.now(),
-                    delay = currentTime - startTime;
+                    var currentTime = Y.mojito.Waterfall.now(),
+                        delay = currentTime - startTime;
 
-                // Sometimes setTimeout calls the callback before the specified delay.
-                // If this happens then set another timeout with the remaining delay.
-                // This ensures that flush data are not written ahead of time.
-                // Runtime tests show that doing this makes the writing of flush data
-                // at most 1 ms late.
-                if (delay < flush.time) {
-                    setTimeout(writeFlushData, flush.time - delay);
-                    return;
-                }
+                    // Sometimes setTimeout calls the callback before the specified delay.
+                    // If this happens then set another timeout with the remaining delay.
+                    // This ensures that flush data are not written ahead of time.
+                    // Runtime tests show that doing this makes the writing of flush data
+                    // at most 1 ms late.
+                    if (delay < flushTime) {
+                        setTimeout(writeFlushData, flushTime - delay);
+                        return;
+                    }
 
-                self.window.document.write(flush.data);
+                    self.window.document.write(flush.data);
 
-                if (i === 0) {
-                    self._catchLinkNavigation();
-                }
+                    if (i === 0) {
+                        self._catchLinkNavigation();
+                    }
 
-                if (self.opened) {
-                    self.iframe.setStyle('height', 'auto');
-                    self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
-                }
-                if (i === flushes.length - 1) {
-                    self.window.document.close();
-                    self._catchFormNavigation();
-                    self.init(callback);
-                }
-            };
+                    if (self.opened) {
+                        self.iframe.setStyle('height', 'auto');
+                        self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
+                    }
+                    if (i === flushes.length - 1) {
+                        self.window.document.close();
+                        self._catchFormNavigation();
+                        self.init(callback);
+                    }
+                };
 
-            setTimeout(writeFlushData, flush.time);
+            setTimeout(writeFlushData, flushTime);
         });
     }
 
@@ -161,8 +162,6 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 body = Y.Node(this.document.body);
 
             body.all('form').on('submit', function (e) {
-
-
                 var form = e.currentTarget,
                     url = form.get('action'),
                     parts,
