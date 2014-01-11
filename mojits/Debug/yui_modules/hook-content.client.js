@@ -4,7 +4,7 @@
  * See the accompanying LICENSE file for terms.
  */
 
-/*jslint nomen: true, plusplus: true */
+/*jslint nomen: true, plusplus: true, continue: true */
 /*global YUI */
 
 YUI.add('mojito-debug-hook-content', function (Y) {

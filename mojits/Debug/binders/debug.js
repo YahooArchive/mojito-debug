@@ -31,6 +31,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
     Y.namespace('mojito.binders')[NAME] = {
         init: function (mojitProxy) {
+            this.debuggerNode = Y.one('#debugger');
+            this.applicationNode = Y.one('#application');
+
             this._hookMojitProxy();
             this.mojitProxy = mojitProxy;
             this.initDebugger(mojitProxy);
@@ -39,7 +42,10 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
         bind: function (node) {
             var self = this;
-            self.app = new Y.mojito.debug.Application(node.one('#app'), this.flushes, function () {
+
+            self.node = node;
+
+            self.app = new Y.mojito.debug.Application(self.applicationNode, self.flushes, function () {
                 var getElementById = window.document.getElementById,
                     debuggerDocument = window.document,
                     appDocument = self.app.window.document;
@@ -297,8 +303,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 return ac.dispatcher.dispatch(command, adapter);
             };
 
-            self.debuggerNode = Y.one('#debugger');
-
             Y.Array.each(['params', 'assets'], function (addon) {
                 ac[addon] = new Y.mojito.addons.ac[addon](command, adapter, ac);
             });
@@ -326,6 +330,8 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             this.config   = Y.Debug.config   = mojitProxy.data.get('config');
             this.flushes  = Y.Debug.flushes  = mojitProxy.data.get('flushes');
 
+            Y.Debug.binder = this;
+
             mojitProxy.config = this.config;
 
             this.updateDebugger();
@@ -341,7 +347,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 }
                 if (!hook.hookContainer) {
                     hook.hookContainer = new Y.mojito.debug.HookContainer(hookName, hook);
-
                     self.debuggerNode.append(hook.hookContainer);
                 } else {
                     hook.hookContainer.update(hook);
@@ -536,7 +541,10 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         },
 
         getUrlParams: function (query) {
-            var paramArray = (query || '').split('&'),
+            if (!query) {
+                return {};
+            }
+            var paramArray = query.split('&'),
                 paramMap = {};
             Y.Array.each(paramArray, function (param) {
                 var parts = param.split('=');

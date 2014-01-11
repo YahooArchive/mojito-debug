@@ -4,7 +4,7 @@
  * See the accompanying LICENSE file for terms.
  */
 
-/*jslint browser: true, nomen: true */
+/*jslint browser: true, nomen: true, regexp: true */
 /*global YUI */
 
 YUI.add('mojito-debug-application', function (Y, NAME) {
@@ -13,7 +13,9 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
     function DebugApplication(iframe, flushes, callback) {
         var self = this,
             startTime;
+
         this.iframe = iframe;
+        this.document = iframe._node.contentDocument;
         this.window = iframe._node.contentWindow;
         this.opened = Y.Debug.mode !== 'hide';
 
@@ -42,12 +44,18 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 }
 
                 self.window.document.write(flush.data);
+
+                if (i === 0) {
+                    self._catchLinkNavigation();
+                }
+
                 if (self.opened) {
                     self.iframe.setStyle('height', 'auto');
                     self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
                 }
                 if (i === flushes.length - 1) {
                     self.window.document.close();
+                    self._catchFormNavigation();
                     self.init(callback);
                 }
             };
@@ -60,38 +68,136 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
 
         init: function (callback) {
             var self = this,
+                iframe = self.iframe,
                 window = self.window,
-                document = window.document,
-                done;
+                loaded = false;
 
-            if (Y.Debug.mode === 'hide') {
-                this.initCallback = callback;
-            } else {
-
+            if (Y.Debug.mode !== 'hide') {
                 self.open(false);
-                if (window.addEventListener) {
-                    done = function () {
-                        callback();//self.open(false, callback);
-                        window.removeEventListener('load', done, false);
-                    };
-                    window.addEventListener('load', done, false);
-                } else if (window.attachEvent) {
-                    done = function () {
-                        callback();//self.open(false, callback);
-                        window.detachEvent('load', done);
-                    };
-                    window.attachEvent('load', done);
-                }
             }
+
+            // Hide the page when the application is unloading,
+            // this is useful if the application reloads without a click to a link
+            // or submitting a form. When this happens the application is out of sync
+            // with the debugger until it finishes loading and the debugger reloads the page
+            // with the new application url.
+            Y.Node(window).on('unload', function () {
+                Y.Debug.binder.node.hide();
+            });
+
+            iframe.on('load', function () {
+                if (loaded) {
+                    // If the application iframe has already loaded then a subsequent load
+                    // means that the application was reloaded and the debugger didn't catch it.
+                    // This reloads the entire page with the new application url such that the debugger
+                    // and the application remain in sync.
+                    self._navigateToUrl(window.location.href);
+                    return;
+                }
+
+                loaded = true;
+                callback();
+            });
+        },
+
+        _urlIsInternal: function (url) {
+            var m = url.match(/https?:\/\/([^\/]+)/),
+                host = m && m[1];
+            return host === window.location.host;
+        },
+
+        _addDebugParam: function (url) {
+            var parts = url.split('?'),
+                params = Y.Debug.binder.getUrlParams(parts[1]),
+                paramArray = [],
+                currentHooks = Y.Debug.binder.history.get('hooks'),
+                currentMode = Y.Debug.binder.history.get('mode'),
+                debugParam = 'debug' + (currentMode ? '.' + currentMode : '');
+
+            // Remove any debug params.
+            Y.Object.each(params, function (value, param) {
+                if (/debug\.?/.test(param)) {
+                    delete params[param];
+                }
+            });
+
+            // Set the debug param to the current enabled hooks
+            params[debugParam] = currentHooks.join(',');
+
+            // Navigate to the new url
+            Y.Object.each(params, function (value, param) {
+                paramArray.push(param + (value !== null ? '=' + value : ''));
+            });
+
+            return parts[0] + '?' + paramArray.join('&');
+        },
+
+        _navigateToUrl: function (url) {
+            // If the url is internal, then update the debug param with the current hooks
+            // and navigate to the url.
+            if (this._urlIsInternal(url)) {
+                url = this._addDebugParam(url);
+            }
+            window.location.href = url;
+        },
+
+        _catchLinkNavigation: function () {
+            var self = this,
+                body = Y.Node(this.document.body);
+
+            // Catch link clicks on the application in the iframe in order to
+            // refresh the entire page with the current debug hooks.
+            body.delegate('click', function (e) {
+                var url = e.target.get('href');
+                if (url) {
+                    e.preventDefault();
+                    self._navigateToUrl(url);
+                }
+            }, 'a');
+        },
+
+        _catchFormNavigation: function () {
+            var self = this,
+                body = Y.Node(this.document.body);
+
+            body.all('form').on('submit', function (e) {
+
+
+                var form = e.currentTarget,
+                    url = form.get('action'),
+                    parts,
+                    paramsArray = [];
+
+                if (url) {
+                    parts = url.split('?');
+                } else {
+                    return;
+                }
+
+                e.halt(true);
+
+                // Add params given form's children input values.
+                form.all('input').each(function (input) {
+                    var name = input.get('name');
+                    if (name) {
+                        paramsArray.push(name + '=' + input.get('value'));
+                    }
+                });
+
+                if (parts[1]) {
+                    paramsArray.unshift(parts[1]);
+                }
+
+                if (paramsArray.length > 0) {
+                    url = parts[0] + '?' + paramsArray.join('&');
+                }
+
+                self._navigateToUrl(url);
+            }, 'form');
         },
 
         open: function (anim, done) {
             var self = this;
-
-            if (this.initCallback) {
-                done = this.initCallback;
-                delete this.initCallback;
-            }
 
             if (!self.window.document.body) {
                 self.window.onload = function () {
@@ -147,6 +253,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
     Y.namespace('mojito.debug').Application = DebugApplication;
 }, '0.0.1', {
     requires: [
+        'node',
         'mojito-debug-addon',
         'mojito-waterfall'
     ]

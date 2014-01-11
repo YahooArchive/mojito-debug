@@ -207,7 +207,6 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 hooks = null;
             }
 
-
             if (hooks) {
                 hooks = typeof hooks === 'string' ? [hooks] : hooks;
                 // Mark hooks that were specifically specified as modified to make sure they are rendered.
@@ -298,6 +297,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             self.config.hooks[hook] = self.config.hooks[hook] || {};
 
             self.hooks[hook] = {
+                _modified: true,
+                _rendered: false,
                 config: self.config.hooks[hook],
                 debugData: {
                     _errors: [],

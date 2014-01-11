@@ -12,7 +12,8 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
-            var self = this;
+            var self = this,
+                req = ac._adapter.req;
 
             // Create a waterfall and use the waterfall custom dispatcher.
             ac.debug.on('waterfall', function (debugData) {
@@ -32,6 +33,9 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
                 debugData.appStart = process.hrtime();
             });
+
+            // Remove the /debug route which was added by the debugger middleware.
+            req.url = req.url.replace(/^\/debug/, '');
 
             self.runApplication(ac, function (err, flushes) {
                 var appHtml = '';
