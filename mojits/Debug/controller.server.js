@@ -163,7 +163,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 instance = {};
 
             if (!route) {
-                return null;
+                return instance;
             }
 
             if (route.call === '*.*') {
