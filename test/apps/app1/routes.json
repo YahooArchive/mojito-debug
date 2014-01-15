@@ -4,7 +4,7 @@
     "main": {
         "verbs": ["get"],
         "path": "/",
-        "call": "main.index"
+        "call": "Frame.index"
     },
 
     "page1": {
