@@ -50,10 +50,6 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                         self._catchLinkNavigation();
                     }
 
-                    if (self.opened) {
-                        self.iframe.setStyle('height', 'auto');
-                        self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
-                    }
                     if (i === flushes.length - 1) {
                         self.window.document.close();
                         self._catchFormNavigation();
@@ -96,8 +92,23 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                     return;
                 }
 
+                if (self.opened) {
+                    self.iframe.setStyle('height', 'auto');
+                    self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
+                }
+
+                // If either catching of navigation was not possible, now it is
+                // since the iframe is fully loaded.
+                self._catchLinkNavigation();
+                self._catchFormNavigation();
+
                 loaded = true;
-                callback();
+
+                // Asynchronously calling callback to make sure the application is shown entirely before the debugger.
+                // This seems to avoid flickering.
+                setTimeout(function () {
+                    callback();
+                }, 0);
             });
         },
 
@@ -143,6 +154,12 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
         },
 
         _catchLinkNavigation: function () {
+            if (!this.document.body) {
+                // The document body is not ready yet, so this method will be called once the
+                // iframe reaches its loaded state.
+                return;
+            }
+
             var self = this,
                 body = Y.Node(this.document.body);
 
@@ -155,9 +172,18 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                     self._navigateToUrl(url);
                 }
             }, 'a');
+
+            // Don't call this method more than once.
+            this._catchLinkNavigation = function () {};
         },
 
         _catchFormNavigation: function () {
+            if (!this.document.body) {
+                // The document body is not ready yet, so this method will be called once the
+                // iframe reaches its loaded state.
+                return;
+            }
+
             var self = this,
                 body = Y.Node(this.document.body);
 
@@ -193,6 +219,9 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
 
                 self._navigateToUrl(url);
             }, 'form');
+
+            // Don't call this method more than once.
+            this._catchFormNavigation = function () {};
         },
 
         open: function (anim, done) {
