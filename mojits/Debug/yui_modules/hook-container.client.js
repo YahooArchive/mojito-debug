@@ -111,9 +111,11 @@ YUI.add('mojito-debug-hook-container', function (Y) {
                 this.removeClass('maximized');
             }
 
-            // need to remove auto from height else it will close immediately
             if (!this.maximized) {
-                contentWrapper.setStyle("height", contentWrapper.get("scrollHeight") + "px");
+                // need to remove auto from height else it will close immediately
+                contentWrapper.setStyle("height", contentWrapper.get("offsetHeight") + "px")
+                              // When closed make sure overflowing content is not visible.
+                              .setStyle('overflow', 'hidden');
             }
 
             contentWrapper.transition({
@@ -123,7 +125,9 @@ YUI.add('mojito-debug-hook-container', function (Y) {
             }, function () {
                 // need to set height to auto in case content inside change size
                 if (this.maximized) {
-                    contentWrapper.setStyle("height", "auto");
+                    contentWrapper.setStyle("height", "auto")
+                                  // When open allow overflow to show.
+                                  .setStyle('overflow', 'visible');
                 }
             }.bind(this));
         }

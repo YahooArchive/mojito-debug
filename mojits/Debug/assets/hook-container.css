@@ -80,14 +80,13 @@
 }
 
 .hook-container > .content-wrapper {
-    overflow: hidden;
+    overflow: visible;
     clear: both;
 }
 
 .hook-container > .content-wrapper > .content {
     background-color: #fff;
     padding: 3px;
-    overflow-x: auto;
     border-radius: 0 0 5px 5px;
 }
 
