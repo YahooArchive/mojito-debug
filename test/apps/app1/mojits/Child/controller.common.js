@@ -15,10 +15,15 @@ YUI.add('child-controller', function (Y, NAME) {
             });
 
             ac.debug.setContent('simple-hook', {
-                "version": version,
-                "simple-hook": {
-                    created: info.time,
-                    location: info.location
+                json: {
+                    "version": version,
+                    "simple-hook": {
+                        created: info.time,
+                        location: info.location
+                    }
+                },
+                options: {
+                    text: true
                 }
             });
 

@@ -118,3 +118,18 @@
 .yui3-skin-json .yui3-treeview-node.yui3-treeview-can-have-children.yui3-treeview-open > .yui3-treeview-row .yui3-treeview-indicator s:hover {
     background-position: 0px 48px;
 }
+
+
+/* Text button and text area */
+
+.yui3-skin-json .yui3-treeview-label .yui3-treeview-text-button {
+    position: absolute;
+    margin-left: 3px;
+    cursor: pointer;
+}
+
+.yui3-skin-json .yui3-treeview-label .yui3-treeview-text-area {
+    margin: 0 0 0 18px;
+    position: absolute;
+    z-index: 2;
+}
