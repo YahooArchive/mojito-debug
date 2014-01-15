@@ -311,6 +311,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             Y.Debug = window.top.DEBUGGER = new Y.mojito.addons.ac.debug(command, adapter, ac);
             Y.Debug.binder = self;
             Y.Debug.Y = Y;
+            Y.Debug.MojitoClient = MojitoClient;
 
             // Make sure that tunnel events by the debugger are handled by the debugger controller on the server.
             self._hookRpc(MojitoClient);
@@ -567,7 +568,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         'mojito-waterfall',
         'mojito-action-context',
         'mojito-client',
-        'mojito-output-buffer',
+        'mojito-output-handler',
         'mojito-debug-hook-container',
         'mojito-util'
     ]
