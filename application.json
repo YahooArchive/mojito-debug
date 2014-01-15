@@ -20,7 +20,7 @@
                                 "css": [
                                     "/static/Debug/assets/debug.css",
                                     "/static/Debug/assets/hook-container.css",
-                                    "/static/JSONTree/assets/css/json-tree.css"
+                                    "/static/JSONTree/assets/json-tree.css"
                                 ]
                             }
                         }

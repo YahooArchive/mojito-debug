@@ -5,6 +5,7 @@
  */
 
 /*globals YUI */
+
 YUI.add('mojito-debug-output-handler', function (Y, NAME) {
     'use strict';
     Y.namespace('mojito.debug').OutputHandler = Y.mojito.OutputBuffer;
