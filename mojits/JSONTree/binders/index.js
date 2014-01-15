@@ -6,7 +6,7 @@
 
 /*globals YUI  */
 
-YUI.add('mojito-debug-json-tree', function (Y, NAME) {
+YUI.add('mojito-debug-json-tree-binder', function (Y, NAME) {
     'use strict';
 
     Y.namespace('mojito.binders')[NAME] = {

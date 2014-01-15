@@ -10,7 +10,6 @@
 YUI.add('mojito-debug-json-tree', function (Y, NAME) {
     'use strict';
 
-
     function JSONTree(json, options) {
         var self = this,
             node = Y.Node.create('<div/>').addClass('yui3-skin-json'),

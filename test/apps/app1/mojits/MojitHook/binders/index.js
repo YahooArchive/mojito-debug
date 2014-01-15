@@ -33,7 +33,7 @@ YUI.add('mojit-hook-binder-index', function (Y, NAME) {
     };
 }, '0.0.1', {
     requires: [
-        'mojit-debug-addon',
+        'mojito-debug-addon',
         'test-log'
     ]
 });
