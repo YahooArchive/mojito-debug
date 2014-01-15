@@ -263,7 +263,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                         context: ac.context,
                         params: hook.params
                     },
-                    adapter = new Y.mojito.OutputBuffer(hookName + '-hook', function (err, data, meta) {
+                    adapter = new Y.mojito.debug.OutputHandler(hookName + '-hook', function (err, data, meta) {
                         var hook = self.hooks[hookName];
 
                         if (err) {
@@ -280,7 +280,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                         if (--numHooksToRender === 0) {
                             return done && done(Y.mix(self.hooks, self.hooks, true, hooks), mergedMeta);
                         }
-                    });
+                    }, self.MojitoClient);
 
                 Y.mix(adapter, ac._adapter);
 
@@ -355,6 +355,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
     requires: [
         'mojito-composite-addon',
         'mojito-params-addon',
+        'mojito-debug-output-handler',
         'mojito-util'
     ]
 });
