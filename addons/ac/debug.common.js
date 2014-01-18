@@ -156,21 +156,32 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         _error: function (hook, error, type, name) {
             this.on(hook, function (debugData) {
                 var message = error,
-                    exception;
+                    exception,
+                    exceptionMessage,
+                    stack,
+                    colon;
 
                 if (Y.Lang.isObject(error)) {
-                    message = error.message || '';
-                    exception = error.exception;
+                    if (error.exception) {
+                        message = error.message;
+                        exception = error.exception;
+                    } else {
+                        message = '';
+                        exception = error;
+                    }
+                    exceptionMessage = exception.message || '';
+                    stack = exception.stack || '';
+                    colon = (message && exceptionMessage) ? ': ' : '';
 
-                    Y.log(message + (exception ? ': ' + exception.stack : ''), 'error', name || NAME);
+                    Y.log(message + colon + exceptionMessage + '\n' + stack , 'error', name || NAME);
+                    exceptionMessage = '<span class="exception" title="' + stack + '">' + exceptionMessage + '</span>';
 
-                    message = message + (exception ? ((message ? ': ' : '') +
-                        '<span class="exception" title="' + exception.stack + '">' + exception.message + '</span>') : '');
+                    message = (message + colon + exceptionMessage);
                 } else {
                     Y.log(error, 'error');
                 }
 
-                debugData._errors.push('<div class="' + (type || '') + '">' + message + '</div>');
+                debugData._errors.push('<div class="' + (type || 'error') + '">' + (message || type || 'erorr') + '</div>');
                 this.render(hook);
             }.bind(this));
         },
