@@ -173,7 +173,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     stack = exception.stack || '';
                     colon = (message && exceptionMessage) ? ': ' : '';
 
-                    Y.log(message + colon + exceptionMessage + '\n' + stack , 'error', name || NAME);
+                    Y.log(message + colon + exceptionMessage + '\n' + stack, 'error', name || NAME);
                     exceptionMessage = '<span class="exception" title="' + stack + '">' + exceptionMessage + '</span>';
 
                     message = (message + colon + exceptionMessage);

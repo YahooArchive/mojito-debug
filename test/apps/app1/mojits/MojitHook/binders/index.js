@@ -1,4 +1,4 @@
-/*jslint plusplus: true */
+/*jslint plusplus: true, nomen: true */
 YUI.add('mojit-hook-binder-index', function (Y, NAME) {
     'use strict';
 
