@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #b13
 }
 
-.content .warning {
+.content .warning, .content .warn {
     color: #d83;
 }
 

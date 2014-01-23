@@ -134,9 +134,17 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }
         },
 
-        _log: function (line) {
+        _log: function (line, options) {
             var hook = 'log';
             this.on(hook, function (debugData) {
+                if (Y.Lang.isObject(line) && Y.Lang.isObject(options)) {
+                    line = {
+                        json: line,
+                        options: options
+                    }
+                } else if (Y.Lang.isString(line) && Y.Lang.isString(options)) {
+                    line = '<span class="' + options + '">' + line + '</span>';
+                }
                 debugData._append.push(line);
                 this.render(hook);
             }.bind(this));

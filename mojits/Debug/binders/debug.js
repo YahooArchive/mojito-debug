@@ -215,6 +215,10 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         _addClientWaterfall: function () {
             var self = this;
 
+            if (!window.performance) {
+                return;
+            }
+
             Y.Debug.on('waterfall', function (debugData, hook) {
                 var serverWaterfall = debugData.waterfall,
                     clientWaterfall = {
