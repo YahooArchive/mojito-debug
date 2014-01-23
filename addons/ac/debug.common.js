@@ -141,7 +141,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     line = {
                         json: line,
                         options: options
-                    }
+                    };
                 } else if (Y.Lang.isString(line) && Y.Lang.isString(options)) {
                     line = '<span class="' + options + '">' + line + '</span>';
                 }
