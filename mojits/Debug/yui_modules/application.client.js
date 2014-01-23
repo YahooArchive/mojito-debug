@@ -12,7 +12,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
 
     function DebugApplication(iframe, flushes, simulateFlushing, callback) {
         var self = this,
-            startTime;
+            firstFlushTime;
 
         this.iframe = iframe;
         this.document = iframe._node.contentDocument;
@@ -24,15 +24,16 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
         Y.Array.each(flushes, function (flush, i) {
             var flushTime = simulateFlushing ? flush.time : 0,
                 writeFlushData = function () {
+                    var currentTime = Y.mojito.Waterfall.now(),
+                        delay;
+
                     if (i === 0) {
-                        startTime = Y.mojito.Waterfall.now();
-                        Y.Debug.on('waterfall', function (debugData) {
-                            debugData.clientAbsoluteStartTime = Y.mojito.Waterfall.now();
-                        });
+                        // First Flush
+                        firstFlushTime = currentTime;
+                        Y.Debug.timing.client.firstFlush = firstFlushTime;
                     }
 
-                    var currentTime = Y.mojito.Waterfall.now(),
-                        delay = currentTime - startTime;
+                    delay = currentTime - firstFlushTime;
 
                     // Sometimes setTimeout calls the callback before the specified delay.
                     // If this happens then set another timeout with the remaining delay.
@@ -51,6 +52,8 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                     }
 
                     if (i === flushes.length - 1) {
+                        // Last Flush
+                        Y.Debug.timing.client.lastFlush = currentTime;
                         self.window.document.close();
                         self._catchFormNavigation();
                         self.init(callback);

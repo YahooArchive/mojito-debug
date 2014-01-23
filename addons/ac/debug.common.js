@@ -32,6 +32,10 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         self.mode = ac.params.params.url.hasOwnProperty('debug') ? '' :
                     ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
                         ac.params.params.url.hasOwnProperty('debug.json') ? 'json' : null;
+        self.timing = {
+            client: {},
+            server: {}
+        };
 
         // Do nothing if the debug parameter is not present.
         if (self.mode === null) {

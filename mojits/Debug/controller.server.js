@@ -13,7 +13,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
             var self = this,
-                req = ac._adapter.req;
+                req = ac.http.getRequest();
 
             // Create a waterfall and use the waterfall custom dispatcher.
             ac.debug.on('waterfall', function (debugData) {
@@ -37,13 +37,12 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             // Remove the /debug route which was added by the debugger middleware.
             req.url = req.url.replace(/^\/debug/, '');
 
+            ac.debug.timing.server.debugStart = req.globals['mojito-debug'].debugStart[0] * 1e9 + req.globals['mojito-debug'].debugStart[1];
+            ac.debug.timing.server.appStart = self._getTime(ac);
+
             self.runApplication(ac, function (err, flushes) {
-                var appHtml = '';
-                Y.Array.each(flushes, function (flush) {
-                    flush.time = flush.time[0] * 1e3 + flush.time[1] / 1e6;
-                    appHtml += flush.data;
-                });
-                ac.debug.appHtml = appHtml;
+                ac.debug.timing.server.appEnd = self._getTime(ac);
+
                 ac.debug.flushes = flushes;
                 self.runDebugger(ac, function (err, data, meta) {
                     ac.done(data, meta);
@@ -52,7 +51,9 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         runApplication: function (ac, callback) {
-            var command = {
+            var req = ac.http.getRequest(),
+                self = this,
+                command = {
                     instance: this.createAppInstance(ac),
                     context: ac.context,
                     params: ac.params.params
@@ -67,20 +68,24 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                         this._flush(data);
                     },
                     _flush: function (data, more) {
-                        this.flushes.push({
-                            data: data,
-                            time: this.firstFlushTime ? process.hrtime(this.firstFlushTime) : [0, 0]
-                        });
+                        var time = self._getTime(ac);
 
                         if (!this.firstFlushTime) {
-                            this.firstFlushTime = process.hrtime();
+                            this.firstFlushTime = time;
+                            ac.debug.timing.server.firstFlush = time;
                         }
+
+                        this.flushes.push({
+                            data: data,
+                            time: (time - this.firstFlushTime) / 1e6 // ms
+                        });
 
                         if (more) {
                             return;
                         }
 
                         // Last flush.
+                        ac.debug.timing.server.lastFlush = time;
 
                         ac.debug.on('waterfall', function (debugData, hook) {
                             // Revert the original dispatch function.
@@ -110,6 +115,11 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                     }
                 };
 
+            if (!command.instance) {
+                req.res.end('Cannot ' + req.method + ' ' + req.url.replace('/debug/', '/'));
+                return;
+            }
+
             Y.mix(adapter, ac._adapter);
             ac._dispatch(command, adapter);
         },
@@ -134,17 +144,19 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         debug: function (ac) {
+            var self = this;
             // Render all hooks.
             ac.debug._render(function (hooks, hooksMeta) {
-                ac.data.set('app', ac.debug.appHtml);
                 ac.data.set('flushes', ac.debug.flushes);
                 ac.data.set('hooks', ac.debug._decycleHooks(hooks));
                 ac.data.set('urlHooks', ac.debug.urlHooks);
                 ac.data.set('mode', ac.debug.mode);
                 ac.data.set('config', ac.debug.config);
+                ac.data.set('timing', ac.debug.timing);
 
                 ac.done({}, hooksMeta);
             });
+            ac.debug.timing.server.debugEnd = self._getTime(ac);
         },
 
         debugJson: function (ac) {
@@ -158,12 +170,13 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         createAppInstance: function (ac) {
-            var appUrl = ac._adapter.req.url.replace('/debug/', '/'),
+            var req = ac.http.getRequest(),
+                appUrl = req.url.replace('/debug/', '/'),
                 route = ac.url.find(appUrl),
                 instance = {};
 
             if (!route) {
-                return instance;
+                return null;
             }
 
             if (route.call === '*.*') {
@@ -201,7 +214,13 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
             Y.mix(adapter, ac._adapter);
             ac._dispatch(command, adapter);
+        },
+
+        _getTime: function (ac) {
+            var time = process.hrtime();
+            return time[0] * 1e9 + time[1];
         }
+
     };
 }, '0.0.1', {
     requires: [

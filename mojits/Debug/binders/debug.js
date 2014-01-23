@@ -4,7 +4,7 @@
  * See the accompanying LICENSE file for terms.
  */
 
-/*jslint nomen: true, regexp: true, browser: true, plusplus: true */
+/*jslint nomen: true, regexp: true, browser: true, plusplus: true, forin: true */
 /*global YUI */
 
 YUI.add('mojito-debug-binder', function (Y, NAME) {
@@ -57,6 +57,11 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 if (self.app.window.YMojito) {
                     self._hookRpc(self.app.window.YMojito.client);
                 }
+
+                // Add window.performance events to the waterfall debug hook.
+                // TODO: disabling this for the moment
+                //self._addClientWaterfall();
+
                 self.debuggerNode.setStyle('display', 'block');
             });
             if (self.mode === 'hide') {
@@ -207,6 +212,86 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             };
         },
 
+        _addClientWaterfall: function () {
+            var self = this;
+
+            Y.Debug.on('waterfall', function (debugData, hook) {
+                var serverWaterfall = debugData.waterfall,
+                    clientWaterfall = {
+                        events: []
+                    },
+                    startTime,
+                    endTime,
+                    camelCaseToSentence = function (str) {
+                        var sentence = '',
+                            i;
+                        for (i in str) {
+                            sentence += (str.charCodeAt(i) < 90 ? ' ' : '') + str.charAt(i);
+                        }
+                        return String.fromCharCode(sentence.charCodeAt(0) - ('a'.charCodeAt(0) - 'A'.charCodeAt(0)))
+                            + sentence.substring(1);
+                    },
+                    debuggerTiming = window.performance.timing,
+                    totalResponseTime = debuggerTiming.responseEnd - debuggerTiming.requestStart, // ms
+                    totalServerTime = (Y.Debug.timing.server.debugEnd - Y.Debug.timing.server.debugStart) / 1e6, // ms
+                    estimatedLatency = (totalResponseTime - totalServerTime) / 2, // ms
+                    clientFirstFlushTime = Y.Debug.timing.client.firstFlush + debuggerTiming.navigationStart, // ms
+                    clientLastFlushTime = Y.Debug.timing.client.lastFlush + debuggerTiming.navigationStart, // ms
+                    serverFirstFlushTime = Y.Debug.timing.server.firstFlush / 1e6, // ms
+                    serverLastFlushTime = Y.Debug.timing.server.lastFlush / 1e6, // ms
+                    serverStartTime = Y.Debug.timing.server.debugStart / 1e6, // ms
+                    clientRequestStart = debuggerTiming.requestStart, // ms
+                    // Time before the first flush should be shifted such that the client's request start matches the server's debug start time - estimated latency.
+                    beforeFirstFlushShift = -1 * clientRequestStart + serverStartTime - estimatedLatency,
+                    // Time at and after the last flush should be shifted such that the client's response end matches the server's last flush + the estimated latency.
+                    afterLastFlushShift = -1 * debuggerTiming.responseEnd + serverFirstFlushTime + estimatedLatency,
+                    events = ['navigationStart', 'unloadEventStart', 'unloadEventEnd', 'redirectStart',
+                              'redirectEnd', 'fetchStart', 'domainLookupStart', 'domainLookupEnd',
+                              'connectStart', 'connectEnd', 'secureConnectionStart', 'requestStart',
+                              'responseStart', 'responseEnd', 'domLoading', 'domInteractive',
+                              'domContentLoadedEventStart', 'domContentLoadedEventEnd', 'domComplete',
+                              'loadEventStart', 'loadEventEnd'];
+
+                Y.Debug.timing.server.estimatedLatency = estimatedLatency;
+
+                Y.Array.each(events, function (type) {
+                    var time,
+                        shift = 0;
+
+                    if (debuggerTiming[type] <= debuggerTiming.requestStart) {
+                        time = debuggerTiming[type];
+                        shift = beforeFirstFlushShift;
+                    } else if (type === 'responseStart') {
+                        time = serverFirstFlushTime + estimatedLatency;
+                    } else if (type === 'responseEnd') {
+                        time = serverLastFlushTime + estimatedLatency;
+                    } else {
+                        time = debuggerTiming[type];
+                        shift = afterLastFlushShift;
+                    }
+
+                    if (time) {
+                        time += shift;
+                        clientWaterfall.events.push({
+                            type: camelCaseToSentence(type),
+                            time: time,
+                            group: ['Client', 'Window Performance']
+                        });
+                    }
+                });
+
+                debugData.waterfall = Y.mojito.Waterfall.merge(serverWaterfall, clientWaterfall, (-1 * serverWaterfall.absoluteStartTime) + 'ns');
+
+                hook.params = {
+                    body: {
+                        waterfall: debugData.waterfall
+                    }
+                };
+
+                Y.Debug.render('waterfall');
+            });
+        },
+
         initHistory: function () {
             var self = this,
                 initialState = {
@@ -331,6 +416,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             this.urlHooks = Y.Debug.urlHooks = mojitProxy.data.get('urlHooks');
             this.config   = Y.Debug.config   = mojitProxy.data.get('config');
             this.flushes  = Y.Debug.flushes  = mojitProxy.data.get('flushes');
+            this.timing   = Y.Debug.timing   = mojitProxy.data.get('timing');
 
             Y.Debug.binder = this;
 
@@ -554,8 +640,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             });
             return paramMap;
         }
-
-
     };
 
 }, '0.0.1', {

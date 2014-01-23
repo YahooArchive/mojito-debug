@@ -39,8 +39,10 @@ module.exports = function (midConfig) {
                         // url was...
 
                         req.globals = req.globals || {};
-                        req.globals['mojito-debug'] = {};
-                        req.globals['mojito-debug'].originalUrl = req.url;
+                        req.globals['mojito-debug'] = {
+                            originalUrl: req.url,
+                            debugStart: process.hrtime()
+                        };
 
                         // Set the request url to the debugger route which will
                         // handle the request.
