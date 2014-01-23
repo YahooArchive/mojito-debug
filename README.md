@@ -252,6 +252,26 @@ ac.debug.on('hook', function (debugData) {
 });
 ```
 
+## Waterfall - Performance Visualization
+
+The debugger by default provides a debug hook called 'waterfall' which instruments key parts of Mojito's internals in order to present a visualization of mojit execution and statistical information. It makes use of [mojito-waterfall's](https://github.com/yahoo/mojito-waterfall/blob/master/README.md#mojito-waterfall-) API to collect the timing data and renders the visualization using the package's Waterfall mojit.
+
+[![Screenshot](https://raw.github.com/yahoo/mojito-waterfall/master/images/screenshot1.png)](https://raw.github.com/yahoo/mojito-waterfall/master/images/screenshot1.png)
+
+### Augmenting the Waterfall
+
+Without any extra code, the waterfall hook breaks down mojit execution into the times spent expanding instance, creating action context, executing controller, and rendering. You can augment the waterfall with your own instrumentation by using the waterfall hook's Waterfall instance in `debugData.waterfall`. Take a look at the [Waterfall API](https://github.com/yahoo/mojito-waterfall/blob/master/README.md#mojito-waterfall-).
+
+**Example**
+```
+ac.debug.on('waterfall', function (debugData) {
+    var waterfall = debugData.waterfall;
+    waterfall.start('Test');
+    waterfall.event('Event 1');
+    waterfall.end('Test');
+});
+```
+
 ## Architecture Diagram
 
 [![Architecture](https://github.com/yahoo/mojito-debug/raw/master/images/architecture.png)](https://github.com/yahoo/mojito-debug/raw/master/images/architecture.png)
