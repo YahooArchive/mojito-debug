@@ -5,6 +5,9 @@ mojito-debug is an npm package that helps developers debug the client/server sid
 
 [![NPM](https://nodei.co/npm/mojito-debug.png)](https://nodei.co/npm/mojito-debug/)
 
+[![Screenshot](https://raw.github.com/yahoo/mojito-debug/master/images/screenshot1.png)](https://raw.github.com/yahoo/mojito-debug/master/images/screenshot1.png)
+
+
 ## Getting Started
 
 1. Install mojito-debug in the mojito application:
@@ -251,4 +254,4 @@ ac.debug.on('hook', function (debugData) {
 
 ## Architecture Diagram
 
-[![Architecture](https://github.com/yahoo/mojito-debug/raw/master/architecture.png)](https://github.com/yahoo/mojito-debug/raw/master/architecture.png)
+[![Architecture](https://github.com/yahoo/mojito-debug/raw/master/images/architecture.png)](https://github.com/yahoo/mojito-debug/raw/master/images/architecture.png)
