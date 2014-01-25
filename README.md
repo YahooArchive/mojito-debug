@@ -228,7 +228,7 @@ YUI.add('MojitHookController', function (Y, NAME) {
 
 After the application finishes execution on the server-side, the debugger displays the application in an iframe on the client-side. Once displayed, client-side YUI modules that require `mojito-debug-addon` have access to the debugger through [`ac.debug`](#api) and its equivalent [`Y.Debug`](#Y.debug).
 
-Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data.
+Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data. In addition the debug hooks data remain consistent regardless of instrumentation occurring in the client/server sides through tunnel requests and ajax calls.
 
 Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through [`ac.debug.on`](#ac.debug.on), are ready for rendering. This is done by calling [`ac.debug.render`](#ac.debug.render).
 
