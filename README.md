@@ -260,7 +260,7 @@ The debugger by default provides a debug hook called 'waterfall' which instrumen
 
 ### Augmenting the Waterfall
 
-Without any user instrumentation, the waterfall hook provides mojito level instrumentation of mojit execution that includes instance expansion, action context construction, controller execution, and rendering. The waterfall can be augmented by using the hook's `debugData.waterfall` Waterfall instance (Take a look at the [Waterfall API](https://github.com/yahoo/mojito-waterfall/blob/master/README.md#waterfall-api)).
+Without any user instrumentation, the waterfall hook provides mojito level instrumentation of mojit execution that includes instance expansion, action context construction, controller execution, and rendering. The waterfall can be augmented by using the hook's `debugData.waterfall` Waterfall instance (take a look at the [Waterfall API](https://github.com/yahoo/mojito-waterfall/blob/master/README.md#waterfall-api)).
 
 **Example**
 ```
