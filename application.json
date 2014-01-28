@@ -6,7 +6,11 @@
             "enabled": true,
             "type": "Debug",
             "config": {
-                "simulate-flushing": false,
+                "options": {
+                    "simulate-flushing": false,
+                    "estimate-latency": true,
+                    "waterfall-window-performance": false
+                },
                 "debug-specs": {
                     "type": "HTMLFrameMojit",
                     "config": {
