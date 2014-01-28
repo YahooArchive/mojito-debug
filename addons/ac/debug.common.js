@@ -290,7 +290,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                         var hook = self.hooks[hookName];
 
                         if (err) {
-                            self.error(hookName, 'Rendering failed (check for server-side errors): ' + err, 'error');
+                            self.error(hookName, 'Rendering failed on ' + (isBrowser ? 'client' : 'server') + '-side: ' + err, 'error');
                         } else {
                             mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
 
