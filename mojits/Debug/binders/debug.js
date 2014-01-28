@@ -45,7 +45,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             self.node = node;
 
-            self.app = new Y.mojito.debug.Application(self.applicationNode, self.flushes, self.config['simulate-flushing'], function () {
+            self._addWindowTiming();
+
+            self.app = new Y.mojito.debug.Application(self.applicationNode, self.flushes, self.config.options['simulate-flushing'], function () {
                 var getElementById = window.document.getElementById,
                     debuggerDocument = window.document,
                     appDocument = self.app.window.document;
@@ -57,10 +59,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 if (self.app.window.YMojito) {
                     self._hookRpc(self.app.window.YMojito.client);
                 }
-
-                // Add window.performance events to the waterfall debug hook.
-                // TODO: disabling this for the moment
-                //self._addClientWaterfall();
 
                 self.debuggerNode.setStyle('display', 'block');
             });
@@ -212,10 +210,21 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             };
         },
 
-        _addClientWaterfall: function () {
-            var self = this;
-
+        _addWindowTiming: function () {
             if (!window.performance) {
+                Y.Debug.timing.server.latency = 0;
+                return;
+            }
+
+            var self = this,
+                debuggerTiming = window.performance.timing,
+                totalResponseTime = debuggerTiming.responseEnd - debuggerTiming.requestStart, // ms
+                totalServerTime = (Y.Debug.timing.server.debugEnd - Y.Debug.timing.server.debugStart), // ms
+                latency = self.config.options['estimate-latency'] ? (totalResponseTime - totalServerTime) / 2 : 0; // ms
+
+            Y.Debug.timing.server.latency = latency;
+
+            if (!self.config.options['waterfall-window-performance']) {
                 return;
             }
 
@@ -235,20 +244,16 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                         return String.fromCharCode(sentence.charCodeAt(0) - ('a'.charCodeAt(0) - 'A'.charCodeAt(0)))
                             + sentence.substring(1);
                     },
-                    debuggerTiming = window.performance.timing,
-                    totalResponseTime = debuggerTiming.responseEnd - debuggerTiming.requestStart, // ms
-                    totalServerTime = (Y.Debug.timing.server.debugEnd - Y.Debug.timing.server.debugStart) / 1e6, // ms
-                    estimatedLatency = (totalResponseTime - totalServerTime) / 2, // ms
                     clientFirstFlushTime = Y.Debug.timing.client.firstFlush + debuggerTiming.navigationStart, // ms
                     clientLastFlushTime = Y.Debug.timing.client.lastFlush + debuggerTiming.navigationStart, // ms
-                    serverFirstFlushTime = Y.Debug.timing.server.firstFlush / 1e6, // ms
-                    serverLastFlushTime = Y.Debug.timing.server.lastFlush / 1e6, // ms
-                    serverStartTime = Y.Debug.timing.server.debugStart / 1e6, // ms
+                    serverFirstFlushTime = Y.Debug.timing.server.firstFlush, // ms
+                    serverLastFlushTime = Y.Debug.timing.server.lastFlush, // ms
+                    serverStartTime = Y.Debug.timing.server.debugStart, // ms
                     clientRequestStart = debuggerTiming.requestStart, // ms
                     // Time before the first flush should be shifted such that the client's request start matches the server's debug start time - estimated latency.
-                    beforeFirstFlushShift = -1 * clientRequestStart + serverStartTime - estimatedLatency,
+                    beforeFirstFlushShift = -1 * clientRequestStart + serverStartTime - latency,
                     // Time at and after the last flush should be shifted such that the client's response end matches the server's last flush + the estimated latency.
-                    afterLastFlushShift = -1 * debuggerTiming.responseEnd + serverFirstFlushTime + estimatedLatency,
+                    afterLastFlushShift = -1 * debuggerTiming.responseEnd + serverFirstFlushTime + latency,
                     events = ['navigationStart', 'unloadEventStart', 'unloadEventEnd', 'redirectStart',
                               'redirectEnd', 'fetchStart', 'domainLookupStart', 'domainLookupEnd',
                               'connectStart', 'connectEnd', 'secureConnectionStart', 'requestStart',
@@ -256,30 +261,28 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                               'domContentLoadedEventStart', 'domContentLoadedEventEnd', 'domComplete',
                               'loadEventStart', 'loadEventEnd'];
 
-                Y.Debug.timing.server.estimatedLatency = estimatedLatency;
-
-                Y.Array.each(events, function (type) {
+                Y.Array.each(events, function (name) {
                     var time,
                         shift = 0;
 
-                    if (debuggerTiming[type] <= debuggerTiming.requestStart) {
-                        time = debuggerTiming[type];
+                    if (debuggerTiming[name] <= debuggerTiming.requestStart) {
+                        time = debuggerTiming[name];
                         shift = beforeFirstFlushShift;
-                    } else if (type === 'responseStart') {
-                        time = serverFirstFlushTime + estimatedLatency;
-                    } else if (type === 'responseEnd') {
-                        time = serverLastFlushTime + estimatedLatency;
+                    } else if (name === 'responseStart') {
+                        time = serverFirstFlushTime + latency;
+                    } else if (name === 'responseEnd') {
+                        time = serverLastFlushTime + latency;
                     } else {
-                        time = debuggerTiming[type];
+                        time = debuggerTiming[name];
                         shift = afterLastFlushShift;
                     }
 
                     if (time) {
                         time += shift;
                         clientWaterfall.events.push({
-                            type: camelCaseToSentence(type),
+                            name: camelCaseToSentence(name),
                             time: time,
-                            group: ['Client', 'Window Performance']
+                            'class': 'Window Performance'
                         });
                     }
                 });

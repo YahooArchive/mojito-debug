@@ -228,7 +228,7 @@ YUI.add('MojitHookController', function (Y, NAME) {
 
 After the application finishes execution on the server-side, the debugger displays the application in an iframe on the client-side. Once displayed, client-side YUI modules that require `mojito-debug-addon` have access to the debugger through [`ac.debug`](#api) and its equivalent [`Y.Debug`](#Y.debug).
 
-Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data.
+Debugging works just as in the server-side, except that client-side hooks have access to the same `debugData` used by corresponding server-side hooks; this allows client-side hooks to augment server-side debugging data. In addition the debug hooks data remain consistent regardless of instrumentation occurring in the client/server sides through tunnel requests and ajax calls.
 
 Since the client-side has no end point, the debugger must be informed whenever hooks, getting data through [`ac.debug.on`](#ac.debug.on), are ready for rendering. This is done by calling [`ac.debug.render`](#ac.debug.render).
 
@@ -249,6 +249,26 @@ Logs generated on the client-side are appended to any logs generated on the serv
 ac.debug.on('hook', function (debugData) {
     var binder = ac.debug.get('hook-name').binder;
     binder.update(debugData.clientSideData);
+});
+```
+
+## Waterfall - Performance Visualization
+
+The debugger by default provides a debug hook called 'waterfall' which instruments key parts of Mojito's internals in order to present a visualization of mojit execution and statistical information. It makes use of [mojito-waterfall's](https://github.com/yahoo/mojito-waterfall/blob/master/README.md#mojito-waterfall-) API to collect the timing data and renders the visualization using the package's Waterfall mojit.
+
+[![Screenshot](https://raw.github.com/yahoo/mojito-waterfall/master/images/screenshot1.png)](https://raw.github.com/yahoo/mojito-waterfall/master/images/screenshot1.png)
+
+### Augmenting the Waterfall
+
+Without any user instrumentation, the waterfall hook provides mojito level instrumentation of mojit execution that includes instance expansion, action context construction, controller execution, and rendering. The waterfall can be augmented by using the hook's `debugData.waterfall` Waterfall instance (take a look at the [Waterfall API](https://github.com/yahoo/mojito-waterfall/blob/master/README.md#waterfall-api)).
+
+**Example**
+```
+ac.debug.on('waterfall', function (debugData) {
+    var waterfall = debugData.waterfall;
+    waterfall.start('Test');
+    waterfall.event('Event 1');
+    waterfall.end('Test');
 });
 ```
 

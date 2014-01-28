@@ -18,6 +18,12 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             // Create a waterfall and use the waterfall custom dispatcher.
             ac.debug.on('waterfall', function (debugData) {
                 var waterfall = new Y.mojito.Waterfall({
+                        classes: {
+                            'Window Performance': {
+                                group: ['Client', 'Window Performance'],
+                                color: 'purple'
+                            }
+                        },
                         stats: {
                             // Only show stats related to mojito internals.
                             profileFilter: 'level === "mojito"'
@@ -37,7 +43,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             // Remove the /debug route which was added by the debugger middleware.
             req.url = req.url.replace(/^\/debug/, '');
 
-            ac.debug.timing.server.debugStart = req.globals['mojito-debug'].debugStart[0] * 1e9 + req.globals['mojito-debug'].debugStart[1];
+            ac.debug.timing.server.debugStart = req.globals['mojito-debug'].debugStart[0] * 1e3 + req.globals['mojito-debug'].debugStart[1] / 1e6;
             ac.debug.timing.server.appStart = self._getTime(ac);
 
             self.runApplication(ac, function (err, flushes) {
@@ -77,7 +83,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
                         this.flushes.push({
                             data: data,
-                            time: (time - this.firstFlushTime) / 1e6 // ms
+                            time: (time - this.firstFlushTime) // ms
                         });
 
                         if (more) {
@@ -93,11 +99,6 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
                             // Get waterfall gui object and make it available through debugData
                             debugData.waterfall = debugData.waterfall.getGui();
-
-                            // The time taken in ms for the first flush relative to the absolute start time of the
-                            // server side waterfall.
-                            debugData.serverFlushTime = (this.firstFlushTime[0] * 1e9 + this.firstFlushTime[1]
-                                                     - debugData.waterfall.absoluteStartTime) / 1e6;
 
                             // Add the waterfall gui to waterfall's parameters since the Waterfall
                             // controller requires it.
@@ -218,7 +219,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
         _getTime: function (ac) {
             var time = process.hrtime();
-            return time[0] * 1e9 + time[1];
+            return time[0] * 1e3 + time[1] / 1e6;
         }
 
     };
