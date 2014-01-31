@@ -4,6 +4,11 @@ YUI.add('child-controller', function (Y, NAME) {
 
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
+            ac.debug.on('waterfall', function (debugData) {
+                debugData.waterfall.event('Child Controller Start', {
+                    group: 'Child'
+                });
+            });
             var info = Y.Test.log(ac.debug, NAME + ' index executed.'),
                 version;
 
@@ -13,6 +18,7 @@ YUI.add('child-controller', function (Y, NAME) {
                 }
                 version = ++debugData.version;
             });
+
 
             ac.debug.setContent('simple-hook', {
                 json: {

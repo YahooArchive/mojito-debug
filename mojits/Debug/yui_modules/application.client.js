@@ -15,8 +15,8 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             firstFlushTime;
 
         this.iframe = iframe;
-        this.document = iframe._node.contentDocument;
         this.window = iframe._node.contentWindow;
+        this.document = this.window.document;
         this.opened = Y.Debug.mode !== 'hide';
 
         self.window.document.open();
@@ -70,7 +70,35 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             var self = this,
                 iframe = self.iframe,
                 window = self.window,
-                loaded = false;
+                loaded = false,
+                done = function () {
+                    if (loaded) {
+                        // If the application iframe has already loaded then a subsequent load
+                        // means that the application was reloaded and the debugger didn't catch it.
+                        // This reloads the entire page with the new application url such that the debugger
+                        // and the application remain in sync.
+                        self._navigateToUrl(window.location.href);
+                        return;
+                    }
+
+                    if (self.opened) {
+                        self.iframe.setStyle('height', 'auto');
+                        self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
+                    }
+
+                    // If either catching of navigation was not possible, now it is
+                    // since the iframe is fully loaded.
+                    self._catchLinkNavigation();
+                    self._catchFormNavigation();
+
+                    loaded = true;
+
+                    // Asynchronously calling callback to make sure the application is shown entirely before the debugger.
+                    // This seems to avoid flickering.
+                    setTimeout(function () {
+                        callback();
+                    }, 0);
+                };
 
             if (Y.Debug.mode !== 'hide') {
                 self.open(false);
@@ -85,34 +113,11 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 Y.Debug.binder.node.hide();
             });
 
-            iframe.on('load', function () {
-                if (loaded) {
-                    // If the application iframe has already loaded then a subsequent load
-                    // means that the application was reloaded and the debugger didn't catch it.
-                    // This reloads the entire page with the new application url such that the debugger
-                    // and the application remain in sync.
-                    self._navigateToUrl(window.location.href);
-                    return;
-                }
+            if (self.document.readyState === 'complete') {
+                done();
+            }
 
-                if (self.opened) {
-                    self.iframe.setStyle('height', 'auto');
-                    self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
-                }
-
-                // If either catching of navigation was not possible, now it is
-                // since the iframe is fully loaded.
-                self._catchLinkNavigation();
-                self._catchFormNavigation();
-
-                loaded = true;
-
-                // Asynchronously calling callback to make sure the application is shown entirely before the debugger.
-                // This seems to avoid flickering.
-                setTimeout(function () {
-                    callback();
-                }, 0);
-            });
+            iframe.on('load', done);
         },
 
         _urlIsInternal: function (url) {

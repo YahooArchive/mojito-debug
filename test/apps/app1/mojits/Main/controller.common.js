@@ -4,6 +4,11 @@ YUI.add('main-controller', function (Y, NAME) {
 
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
+            ac.debug.on('waterfall', function (debugData) {
+                debugData.waterfall.event('Main Controller Start', {
+                    group: 'Main'
+                });
+            });
             var info = Y.Test.log(ac.debug, NAME + ' index executed.');
 
             ac.assets.addCss('./index.css');
@@ -14,6 +19,7 @@ YUI.add('main-controller', function (Y, NAME) {
                 }
                 debugData.version++;
             });
+
 
             ac.composite.execute({
                 children: {
