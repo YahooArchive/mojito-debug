@@ -12,12 +12,19 @@ YUI.add('mojito-debug-utils', function (Y, NAME) {
 
     Y.namespace('mojito.debug').Utils = {
 
-        removeCycles: function (object, depthLimit, stringifyFunctions, acyclic) {
+        removeCycles: function (object, depthLimit) {
+            if (depthLimit === undefined) {
+                depthLimit = 4;
+            }
+            return this.transformObject(object, depthLimit, true, false, false);
+        },
+
+        transformObject: function (object, depthLimit, stringifyFunctions, copyMinimum, isAcyclic) {
             depthLimit = depthLimit || -1;
-            var _removeCycles = function (object, ancestors, path, depth) {
+            var _transformObject = function (object, ancestors, path, depth) {
 
                 if (typeof object !== 'object' || object === null) {
-                    if (stringifyFunctions && Y.Lang.isFunction(object)) {
+                    if (stringifyFunctions !== false && Y.Lang.isFunction(object)) {
                         return object.toString();
                     }
                     return object;
@@ -27,7 +34,7 @@ YUI.add('mojito-debug-utils', function (Y, NAME) {
                     return '[' + (Y.Lang.isArray(object) ? 'Array[' + object.length + ']' :  object.constructor.name || 'Object') + ']';
                 }
 
-                if (!acyclic && ancestors.indexOf(object) !== -1) {
+                if (!isAcyclic && ancestors.indexOf(object) !== -1) {
                     return '[Cycle: ' + path + ']';
                 }
 
@@ -35,28 +42,34 @@ YUI.add('mojito-debug-utils', function (Y, NAME) {
                     newAncestors,
                     ret;
 
-                if (!acyclic) {
+                if (!isAcyclic) {
                     newAncestors = ancestors.slice(0);
                     newAncestors.push(object);
                 }
 
                 Y.Object.each(object, function (value, key) {
-                    var newValue = _removeCycles(value, !acyclic && newAncestors.slice(0), path + '->' + key, depth + 1);
-                    if (newValue !== value) {
+                    var newValue = _transformObject(value, !isAcyclic && newAncestors.slice(0), path + '->' + key, depth + 1);
+                    if (copyMinimum && newValue !== value) {
+                        newObject[key] = newValue;
+                    } else if (!copyMinimum) {
                         newObject[key] = newValue;
                     }
                 });
 
-                if (!Y.Object.isEmpty(newObject)) {
-                    Y.mix(newObject, object);
-                    ret = newObject;
+                if (copyMinimum) {
+                    if (!Y.Object.isEmpty(newObject)) {
+                        Y.mix(newObject, object);
+                        ret = newObject;
+                    } else {
+                        ret = object;
+                    }
                 } else {
-                    ret = object;
+                    ret = newObject;
                 }
 
                 return ret;
             };
-            return _removeCycles(object, [], 'root', 0);
+            return _transformObject(object, [], 'root', 0);
         }
     };
 }, '0.1.0');

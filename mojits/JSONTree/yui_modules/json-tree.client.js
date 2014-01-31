@@ -20,7 +20,10 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
             json = json.json;
         }
 
-        if (Y.Lang.isObject(json)) {
+        if ((Y.Lang.isObject(json) && Y.Object.size(json)) === 0 ||
+                (Y.Lang.isString(json) && json.length === 0)) {
+            node.append('[Empty ' + Y.Lang.type(json) + ']');
+        } else if (Y.Lang.isObject(json)) {
             tree = new Y.TreeView({
                 container: node,
                 nodes: this.getNodes(json)
@@ -46,7 +49,7 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
                 var node = {};
 
                 if (Y.Lang.isObject(value)) {
-                    node.label = key + (Y.Lang.isArray(value) ? '(' + value.length + ')' : '');
+                    node.label = key + (Y.Lang.isArray(value) ? '<span class="value"> (' + value.length + ')</span>' : '');
                     node.children = self.getNodes(value);
                 } else {
                     node.label = key + ': <span class="value">' + String(value) + '</span>';

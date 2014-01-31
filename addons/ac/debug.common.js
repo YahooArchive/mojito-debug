@@ -352,11 +352,11 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 try {
                     JSON.stringify(hook);
                     // we know it has no cycles so just copy the object while stringifing functions, no depth limit.
-                    serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, 0, true, true);
+                    serializedHooks[hookName] = Y.mojito.debug.Utils.transformObject(hook, 0, true, true, true);
                 } catch (e) {
                     self.error(hookName, 'Unable to serialize debugData: "' + e.message
                         + '". debugData has been decycled and limited to a depth of ' + (JSON_DEPTH_LIMIT - 1) + '.', 'warning');
-                    serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, JSON_DEPTH_LIMIT, true);
+                    serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, JSON_DEPTH_LIMIT);
                 }
             });
 
