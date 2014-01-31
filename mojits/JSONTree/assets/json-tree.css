@@ -124,12 +124,13 @@
 
 .yui3-skin-json .yui3-treeview-label .yui3-treeview-text-button {
     position: absolute;
+    margin-top: 1px;
     margin-left: 3px;
     cursor: pointer;
 }
 
 .yui3-skin-json .yui3-treeview-label .yui3-treeview-text-area {
-    margin: 0 0 0 18px;
+    margin: 1px 0 0 18px;
     position: absolute;
     z-index: 2;
 }
