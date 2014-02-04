@@ -116,7 +116,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                         params: {
                             url: url,
                             body: {
-                                hooks: Y.Debug._decycleHooks(self._getHooks()),
+                                hooks: Y.mojito.debug.Utils.decycle(self._getHooks()),
                                 config: self.config,
                                 command: command
                             }
@@ -418,13 +418,12 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 });
             };
 
+            this.hooks    = Y.Debug.hooks    = Y.mojito.debug.Utils.retrocycle(mojitProxy.data.get('hooks'));
             this.mode     = Y.Debug.mode     = mojitProxy.data.get('mode');
-            this.hooks    = Y.Debug.hooks    = mojitProxy.data.get('hooks');
             this.urlHooks = Y.Debug.urlHooks = mojitProxy.data.get('urlHooks');
             this.config   = Y.Debug.config   = mojitProxy.data.get('config');
             this.flushes  = Y.Debug.flushes  = mojitProxy.data.get('flushes');
             this.timing   = Y.Debug.timing   = mojitProxy.data.get('timing');
-
             Y.Debug.binder = this;
 
             mojitProxy.config = this.config;

@@ -89,6 +89,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         self.enabled = true;
 
         self.on = self._on;
+        self.once = self._once;
         self.log = self._log;
         self.setContent = self._setContent;
         self.appendContent = self._appendContent;
@@ -112,8 +113,14 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
         render: NOOP,
 
-        _on: function (hook, callback) {
-            if (!this.hooks[hook]) {
+        _on: function (type, callback, once) {
+            var parts = type.split(':'),
+                hook = parts[0],
+                event = parts[1],
+                errorMessage = 'Error in a callback passed to ac.debug.on',
+                originalCallback = callback;
+
+            if (!event && !this.hooks[hook]) {
                 if (this.allHooksEnabled) {
                     this.config.aliases.all.push(hook);
                     this._initHook(hook);
@@ -122,16 +129,34 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 }
             }
 
+            // Wrap the callback with a try-catch in order to report any errors
+            // occurring after calling callback.
+            callback = function () {
+                try {
+                    originalCallback.apply(this, arguments);
+                } catch (e) {
+                    if (this.hooks[hook]) {
+                        this.error(hook, {
+                            message: errorMessage,
+                            exception: e
+                        }, 'error');
+                    } else {
+                        Y.log(errorMessage + '(' + type + ')', NAME);
+                    }
+                }
+            }.bind(this);
+
+            if (event) {
+                return Y[once ? 'once' : 'on'](hook + ':' + event, callback);
+            }
+
             this.hooks[hook]._modified = true;
 
-            try {
-                callback(this.hooks[hook].debugData, this.hooks[hook]);
-            } catch (e) {
-                this.error(hook, {
-                    message: 'Error in a callback passed to ac.debug.on',
-                    exception: e
-                }, 'error');
-            }
+            callback(this.hooks[hook].debugData, this.hooks[hook]);
+        },
+
+        _once: function (type, callback) {
+            return this.on(type, callback, true);
         },
 
         _log: function (line, options) {
@@ -241,38 +266,51 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }
 
             Y.Array.each(hooks, function (hookName) {
-                var hook = self.hooks[hookName];
+                var hook = self.hooks[hookName],
+                    prepareToRender;
                 if (!hook || !hook._modified) {
                     return;
                 }
 
-                hook._modified = false;
+                prepareToRender = function () {
+                    hook._modified = false;
 
-                if (hook.debugData._errors.length > 0) {
-                    // Do not attempt to render this hook if it has errors,
-                    // otherwise the rendering may result in more errors,
-                    // resulting in an infinite loop.
-                    hook._rendered = true;
-                } else if (hook.binder && hook.binder.render) {
-                    // The hook has a binder with a render function,
-                    // which is used to render this hook.
-                    hook.binder.render(hook.node, hook.debugData);
-                    hook._rendered = true;
-                } else if (hook.config && (hook.config.base || hook.config.type)) {
-                    // Render this hook if it's config specifies a base or a type.
-                    numHooksToRender++;
-                    // It's important to clone the config instead of using it directly,
-                    // because it should not be modified; otherwise there can be interference,
-                    // and the added params will be sent to the client.
-                    hooksToRender[hookName] = Y.clone(hook.config);
-                    hooksToRender[hookName].params = hook.params || {};
-                    hooksToRender[hookName].params.body = (hook.params && hook.params.body) || {};
-                    hooksToRender[hookName].params.body.debugData = hook.debugData;
-                    hooksToRender[hookName].params.body.hook = hookName;
-                } else {
-                    // This is a simple hook that will rendered according to _content/_append in debugData.
-                    hook._rendered = true;
-                }
+                    if (hook.debugData._errors.length > 0) {
+                        // Do not attempt to render this hook if it has errors,
+                        // otherwise the rendering may result in more errors,
+                        // resulting in an infinite loop.
+                        hook._rendered = true;
+                    } else if (hook.binder && hook.binder.render) {
+                        // The hook has a binder with a render function,
+                        // which is used to render this hook.
+                        hook.binder.render(hook.node, hook.debugData);
+                        hook._rendered = true;
+                    } else if (hook.config && (hook.config.base || hook.config.type)) {
+                        // Render this hook if it's config specifies a base or a type.
+                        numHooksToRender++;
+                        // It's important to clone the config instead of using it directly,
+                        // because it should not be modified; otherwise there can be interference,
+                        // and the added params will be sent to the client.
+                        hooksToRender[hookName] = Y.clone(hook.config);
+                        hooksToRender[hookName].params = hook.params || {};
+                        hooksToRender[hookName].params.body = (hook.params && hook.params.body) || {};
+                        hooksToRender[hookName].params.body.debugData = hook.debugData;
+                        hooksToRender[hookName].params.body.hook = hookName;
+                    } else {
+                        // This is a simple hook that will rendered according to _content/_append in debugData.
+                        hook._rendered = true;
+                    }
+                };
+
+                // Fire the event hook:render, any subscribers
+                Y.publish(hookName + ':render', {
+                    emitFacade: true,
+                    defaultFn : prepareToRender
+                });
+                Y.fire(hookName + ':render', {
+                    hook: hook,
+                    debugData: hook.debugData
+                });
             });
 
             if (Y.Object.isEmpty(hooksToRender)) {
@@ -341,13 +379,15 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             if (!this.config.hooks[hook].description) {
                 this.config.hooks[hook].description = this.config.hooks[hook].title + '.';
             }
-        },
+        }/*,
 
         _decycleHooks: function (hooks) {
             var self = this,
-                serializedHooks = {},
-                JSON_DEPTH_LIMIT = 5;
+                decycledHooks = {},
+                JSON_DEPTH_LIMIT = 7;
             Y.Object.each(hooks, function (hook, hookName) {
+                decycledHooks[hookName] = Y.mojito.debug.Utils.decycle(hook);
+                return;
                 // TODO: revisit converting the json into an object that references itself.
                 try {
                     JSON.stringify(hook);
@@ -360,8 +400,12 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 }
             });
 
-            return serializedHooks;
-        }
+            return decycledHooks;
+        },
+
+        _retrocycleHooks: function (hooks) {
+            Y.Object.each(hooks)
+        }*/
     };
 
     Y.namespace('mojito.addons.ac').debug = DebugAddon;
@@ -376,6 +420,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
     }
 }, '0.0.1', {
     requires: [
+        'event-custom',
         'mojito-composite-addon',
         'mojito-params-addon',
         'mojito-debug-output-handler',

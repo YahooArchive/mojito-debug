@@ -93,8 +93,7 @@ YUI.add('mojito-debug-hook-content', function (Y) {
 
         _appendLine: function (container, line) {
             if (Y.Lang.isObject(line)) {
-                // TODO should not need to remove cycles if JSONTree loaded nodes lazily.
-                container.append(new Y.mojito.debug.JSONTree(Y.mojito.debug.Utils.removeCycles(line)));
+                container.append(new Y.mojito.debug.JSONTree(line));
             } else {
                 container.append('<div class="line">' + line + '</div>');
             }

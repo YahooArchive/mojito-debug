@@ -70,6 +70,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             var self = this,
                 iframe = self.iframe,
                 window = self.window,
+                document = self.document,
                 loaded = false,
                 done = function () {
                     if (loaded) {
@@ -82,8 +83,8 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                     }
 
                     if (self.opened) {
-                        self.iframe.setStyle('height', 'auto');
-                        self.iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
+                        iframe.setStyle('height', 'auto');
+                        iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
                     }
 
                     // If either catching of navigation was not possible, now it is
@@ -113,11 +114,16 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 Y.Debug.binder.node.hide();
             });
 
-            if (self.document.readyState === 'complete') {
+
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
                 done();
             }
 
-            iframe.on('load', done);
+            if (document.addEventListener) {
+                document.addEventListener('DOMContentLoaded', done, false);
+            } else if (document.attachEvent) {
+                document.attachEvent('DOMContentLoaded', done);
+            }
         },
 
         _urlIsInternal: function (url) {

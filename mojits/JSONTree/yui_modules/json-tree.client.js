@@ -4,7 +4,7 @@
  * See the accompanying LICENSE file for terms.
  */
 
-/*jslint browser: true, nomen: true, plusplus: true */
+/*jslint browser: true, nomen: true, plusplus: true, regexp: true */
 /*global YUI */
 
 YUI.add('mojito-debug-json-tree', function (Y, NAME) {
@@ -26,8 +26,18 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
         } else if (Y.Lang.isObject(json)) {
             tree = new Y.TreeView({
                 container: node,
-                nodes: this.getNodes(json)
+                nodes: self.getNodes(json)
             });
+
+            tree.plug(Y.Plugin.Tree.Lazy, {
+                load: function (node) {
+                    var childrenNodes = self.getNodes(node.data.value);
+                    Y.Array.each(childrenNodes, function (childNode) {
+                        node.append(childNode);
+                    });
+                }
+            });
+
             tree.render();
 
             if (Y.Lang.isObject(options)) {
@@ -46,12 +56,21 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
                 nodes = [];
 
             Y.Object.each(json, function (value, key) {
-                var node = {};
+                var node = {
+                    data: {}
+                };
 
-                if (Y.Lang.isObject(value)) {
+                if ((Y.Lang.isObject(value) && Y.Object.size(value)) === 0 ||
+                        (Y.Lang.isString(value) && value.length === 0)) {
+                    node.label = key + ': <span class="value">' + '[Empty ' + Y.Lang.type(value) + ']' + '</span>';
+                } else if (Y.Lang.isObject(value)) {
                     node.label = key + (Y.Lang.isArray(value) ? '<span class="value"> (' + value.length + ')</span>' : '');
-                    node.children = self.getNodes(value);
+                    node.canHaveChildren = true;
+                    node.data.value = value;
                 } else {
+                    if (Y.Lang.isString(value) && !/^\[(?:Object|Function \(.*\)|Array\[\d+\])\]$/.test(value)) {
+                        value = JSON.stringify(self.escapeHtml(value));
+                    }
                     node.label = key + ': <span class="value">' + String(value) + '</span>';
                 }
 
@@ -118,6 +137,23 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
             textContainer.append(textArea);
 
             firstLabel.append(textContainer);
+        },
+
+        /* Adopted from https://github.com/janl/mustache.js/blob/master/mustache.js
+         */
+        escapeHtml: function (string) {
+            var entityMap = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': '&quot;',
+                "'": '&#39;',
+                "/": '&#x2F;'
+            };
+
+            return String(string).replace(/[&<>"'\/]/g, function (s) {
+                return entityMap[s];
+            });
         }
     };
 
@@ -125,6 +161,7 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
 }, '0.0.1', {
     requires: [
         'node',
+        'tree-lazy',
         'gallery-sm-treeview'
     ]
 });

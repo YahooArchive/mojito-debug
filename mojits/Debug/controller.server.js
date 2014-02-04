@@ -46,8 +46,11 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             ac.debug.timing.server.debugStart = req.globals['mojito-debug'].debugStart[0] * 1e3 + req.globals['mojito-debug'].debugStart[1] / 1e6;
             ac.debug.timing.server.appStart = self._getTime(ac);
 
+            Y.fire('application:start');
             self.runApplication(ac, function (err, flushes) {
                 ac.debug.timing.server.appEnd = self._getTime(ac);
+
+                Y.fire('application:end');
 
                 ac.debug.flushes = flushes;
                 self.runDebugger(ac, function (err, data, meta) {
@@ -149,7 +152,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
             // Render all hooks.
             ac.debug._render(function (hooks, hooksMeta) {
                 ac.data.set('flushes', ac.debug.flushes);
-                ac.data.set('hooks', ac.debug._decycleHooks(hooks));
+                ac.data.set('hooks', Y.mojito.debug.Utils.decycle(hooks));
                 ac.data.set('urlHooks', ac.debug.urlHooks);
                 ac.data.set('mode', ac.debug.mode);
                 ac.data.set('config', ac.debug.config);
@@ -161,7 +164,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         debugJson: function (ac) {
-            ac.done(JSON.stringify(ac.debug._decycleHooks(ac.debug.hooks), null, '    '), {
+            ac.done(JSON.stringify(Y.mojito.debug.Utils.transformObject(ac.debug.hooks, 7, true, false, false), null, '    '), {
                 http: {
                     headers: {
                         'content-type': 'application/json; charset="utf-8"'
@@ -199,14 +202,14 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         invoke: function (ac) {
             var body = ac.params.body(),
                 url = ac.params.url(),
-                hooks = body.hooks,
+                hooks = Y.mojito.debug.Utils.retrocycle(body.hooks),
                 command = body.command,
                 adapter = new Y.mojito.OutputBuffer('proxy', function (err, data, meta) {
                     ac.http.setHeader('Content-type', 'application/json');
                     ac.done(JSON.stringify({
                         data: data,
                         meta: meta,
-                        hooks: Y.mojito.debug.Utils.removeCycles(ac.debug.hooks)
+                        hooks: Y.mojito.debug.Utils.decycle(ac.debug.hooks)
                     }), meta);
                 });
 
