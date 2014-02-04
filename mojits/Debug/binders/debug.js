@@ -47,7 +47,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             self._addWindowTiming();
 
-            self.app = new Y.mojito.debug.Application(self.applicationNode, self.flushes, self.config.options['simulate-flushing'], function () {
+            self.app = new Y.mojito.debug.Application(self.applicationNode, self.debuggerNode, self.flushes, self.config.options['simulate-flushing'], function () {
                 var getElementById = window.document.getElementById,
                     debuggerDocument = window.document,
                     appDocument = self.app.window.document;
@@ -59,8 +59,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 if (self.app.window.YMojito) {
                     self._hookRpc(self.app.window.YMojito.client);
                 }
-
-                self.debuggerNode.setStyle('display', 'block');
             });
             if (self.mode === 'hide') {
                 self.debuggerNode.setStyle('display', 'block');
@@ -126,7 +124,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                         if (error) {
                             return adapter.error(error);
                         }
-                        self._updateHooks(result.hooks);
+                        self._updateHooks(Y.mojito.debug.Utils.retrocycle(result.hooks));
                         adapter.callback(error, result.data, result.meta);
 
                         Y.Debug.render();

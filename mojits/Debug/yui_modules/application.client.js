@@ -10,13 +10,14 @@
 YUI.add('mojito-debug-application', function (Y, NAME) {
     'use strict';
 
-    function DebugApplication(iframe, flushes, simulateFlushing, callback) {
+    function DebugApplication(iframe, debuggerNode, flushes, simulateFlushing, callback) {
         var self = this,
             firstFlushTime;
 
         this.iframe = iframe;
         this.window = iframe._node.contentWindow;
         this.document = this.window.document;
+        this.debuggerNode = debuggerNode;
         this.opened = Y.Debug.mode !== 'hide';
 
         self.window.document.open();
@@ -72,6 +73,9 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 window = self.window,
                 document = self.document,
                 loaded = false,
+                showDebugger = function () {
+                    self.debuggerNode.setStyle('display', 'block');
+                },
                 done = function () {
                     if (loaded) {
                         // If the application iframe has already loaded then a subsequent load
@@ -114,16 +118,20 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 Y.Debug.binder.node.hide();
             });
 
-
-            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+            if (document.readyState === 'complete') {
+                showDebugger();
                 done();
+            } else if (document.readyState === 'interactive') {
+                showDebugger();
+            } else {
+                if (document.addEventListener) {
+                    document.addEventListener('DOMContentLoaded', showDebugger, false);
+                } else if (document.attachEvent) {
+                    document.attachEvent('DOMContentLoaded', showDebugger);
+                }
             }
 
-            if (document.addEventListener) {
-                document.addEventListener('DOMContentLoaded', done, false);
-            } else if (document.attachEvent) {
-                document.attachEvent('DOMContentLoaded', done);
-            }
+            iframe.on('load', done);
         },
 
         _urlIsInternal: function (url) {
