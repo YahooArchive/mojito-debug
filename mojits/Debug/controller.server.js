@@ -164,7 +164,15 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         },
 
         debugJson: function (ac) {
-            ac.done(JSON.stringify(Y.mojito.debug.Utils.transformObject(ac.debug.hooks, 7, true, false, false), null, '    '), {
+            var hooks;
+
+            try {
+                hooks = JSON.stringify(ac.debug.hooks, null, '    ');
+            } catch (e) {
+                hooks = JSON.stringify(Y.mojito.debug.Utils.transformObject(ac.debug.hooks, 7, true, false, false), null, '    ');
+            }
+
+            ac.done(hooks, {
                 http: {
                     headers: {
                         'content-type': 'application/json; charset="utf-8"'
