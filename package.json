@@ -1,6 +1,6 @@
 {
     "name": "mojito-debug",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "description": "mojito-debug helps developers debug their applications through debug hooks, whose results are shown on the client-side under the application when the 'debug' parameter appears in the URL.",
     "author": "Albert Jimenez <jimenez@yahoo-inc.com>",
     "dependencies": {
@@ -8,8 +8,8 @@
         "mojito-waterfall": "0.0.x"
     },
     "devDependencies": {
-        "mojito": "0.8.x",
-        "mojito-cli": "0.1.x",
+        "mojito": "0.9.x",
+        "mojito-cli": "0.2.x",
         "istanbul": "*"
     },
     "scripts": {
@@ -20,7 +20,7 @@
     "engines": {
         "node": "> 0.10",
         "npm": "> 1.2",
-        "mojito": "> 0.8"
+        "mojito": "> 0.9"
     },
     "repository": {
         "type": "git",
