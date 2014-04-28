@@ -4,8 +4,16 @@
  * See the accompanying LICENSE file for terms.
  */
 
-/* Don't show outline when selecting nodes */
-.yui3-skin-json .yui3-treeview-node:focus {
+/* Allow user to click and highlight text */
+.yui3-skin-json.yui3-treeview * {
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    -webkit-user-select: auto;
+    user-select: auto;
+}
+
+/* Don't show outline selecting tree elements */
+.yui3-skin-json *:focus {
     outline: 0;
 }
 
@@ -133,4 +141,8 @@
     margin: 1px 0 0 18px;
     position: absolute;
     z-index: 2;
+}
+
+.yui3-skin-json {
+    margin-right: 16px;
 }
