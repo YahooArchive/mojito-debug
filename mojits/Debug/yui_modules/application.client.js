@@ -74,7 +74,9 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 document = self.document,
                 loaded = false,
                 showDebugger = function () {
-                    self.debuggerNode.setStyle('display', 'block');
+                    if (loaded) {
+                        self.debuggerNode.setStyle('display', 'block');
+                    }
                 },
                 done = function () {
                     if (loaded) {
@@ -101,6 +103,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                     // Asynchronously calling callback to make sure the application is shown entirely before the debugger.
                     // This seems to avoid flickering.
                     setTimeout(function () {
+                        showDebugger();
                         callback();
                     }, 0);
                 };
