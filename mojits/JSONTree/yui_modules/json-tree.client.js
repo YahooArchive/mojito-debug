@@ -10,6 +10,10 @@
 YUI.add('mojito-debug-json-tree', function (Y, NAME) {
     'use strict';
 
+
+    // Allow users to highlight text inside the json tree.
+    Y.TreeView.prototype._onMouseDown = function () {};
+
     function JSONTree(json, options) {
         var self = this,
             node = Y.Node.create('<div/>').addClass('yui3-skin-json'),
@@ -91,7 +95,7 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
             var treeRow = tree.children[0] && tree.children[0]._htmlNode.one('.yui3-treeview-row'),
                 // If the text is a string, use that instead of stringifying the json.
                 jsonString = Y.Lang.isString(text) ? text : JSON.stringify(json, null, 4),
-                numLines = 0,
+                numLines = 1,
                 widthSet = false,
                 textContainer = Y.Node.create('<span/>').addClass('yui3-treeview-text-button'),
                 textArea = Y.Node.create('<textarea readonly wrap="off"/>'),

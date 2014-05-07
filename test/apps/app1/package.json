@@ -6,8 +6,12 @@
         "email": "jimenez@yahoo-inc.com"
     },
     "dependencies": {
+        "express": "3.5.x",
         "mojito-debug": "*",
-        "mojito": "0.8.x",
-        "mojito-cli": "0.1.x"
+        "mojito": "0.9.x",
+        "mojito-cli": "0.2.x"
+    },
+    "scripts": {
+        "start": "node app.js"
     }
 }
