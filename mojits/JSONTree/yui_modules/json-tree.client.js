@@ -24,6 +24,7 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
                 (Y.Lang.isString(json) && json.length === 0)) {
             node.append('[Empty ' + Y.Lang.type(json) + ']');
         } else if (Y.Lang.isObject(json)) {
+
             tree = new Y.TreeView({
                 container: node,
                 nodes: self.getNodes(json)
@@ -87,17 +88,15 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
         },
 
         addText: function (text, json, tree) {
-            var firstLabel = tree.children[0] && tree.children[0]._htmlNode.one('.yui3-treeview-label'),
+            var treeRow = tree.children[0] && tree.children[0]._htmlNode.one('.yui3-treeview-row'),
                 // If the text is a string, use that instead of stringifying the json.
                 jsonString = Y.Lang.isString(text) ? text : JSON.stringify(json, null, 4),
                 numLines = 0,
                 widthSet = false,
-                textContainer = Y.Node.create('<span/>'),
-                textArea = Y.Node.create('<textarea readonly wrap="off"/>')
-                             .addClass('yui3-treeview-text-area'),
+                textContainer = Y.Node.create('<span/>').addClass('yui3-treeview-text-button'),
+                textArea = Y.Node.create('<textarea readonly wrap="off"/>'),
                 textButton = Y.Node.create('<img/>')
                                    .set('title', 'Toggle JSON text, double click show JSON text on new page.')
-                                   .addClass('yui3-treeview-text-button')
                                    .set('src', 'http://svn.corp.yahoo.com/docroot/images/log.png');
 
             Y.Array.each(jsonString, function (c) {
@@ -136,7 +135,7 @@ YUI.add('mojito-debug-json-tree', function (Y, NAME) {
             textContainer.append(textButton);
             textContainer.append(textArea);
 
-            firstLabel.append(textContainer);
+            treeRow.append(textContainer);
         },
 
         /* Adopted from https://github.com/janl/mustache.js/blob/master/mustache.js

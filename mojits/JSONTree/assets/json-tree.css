@@ -121,16 +121,19 @@
 
 
 /* Text button and text area */
+.yui3-skin-json .yui3-treeview-row .yui3-treeview-text-button {
+    margin-left: 4px;
+    position: relative;
+    top: 6px;
+}
 
-.yui3-skin-json .yui3-treeview-label .yui3-treeview-text-button {
+.yui3-skin-json .yui3-treeview-row .yui3-treeview-text-button img {
     position: absolute;
-    margin-top: 1px;
-    margin-left: 3px;
     cursor: pointer;
 }
 
-.yui3-skin-json .yui3-treeview-label .yui3-treeview-text-area {
-    margin: 1px 0 0 18px;
+.yui3-skin-json .yui3-treeview-row .yui3-treeview-text-button textarea {
+    margin: 0 0 0 15px;
     position: absolute;
     z-index: 2;
 }
