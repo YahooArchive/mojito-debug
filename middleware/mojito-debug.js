@@ -13,7 +13,7 @@ module.exports = function (midConfig) {
 
     var Y = midConfig.Y,
         store = midConfig.store,
-        DEBUG_PARAM_REGEXP = /debug(\.[a-zA-Z0-9]+)?/;
+        DEBUG_PARAM_REGEXP = /^debug(\.[a-zA-Z0-9]+)?$/;
 
     return function (req, res, next) {
         var appConfig = store.getAppConfig(req.context), url, key;
