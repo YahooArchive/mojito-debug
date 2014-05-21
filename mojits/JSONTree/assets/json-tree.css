@@ -141,7 +141,7 @@
 }
 
 .yui3-skin-json .yui3-treeview-row .yui3-treeview-text-button textarea {
-    margin: 0 0 0 15px;
+    margin: 0 0 25px 15px;
     position: absolute;
     z-index: 2;
 }
