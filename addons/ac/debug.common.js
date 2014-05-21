@@ -215,7 +215,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
                     message = (message + colon + exceptionMessage);
                 } else {
-                    Y.log(error, 'error');
+                    Y.log(error, 'error', name || NAME);
                 }
 
                 debugData._errors.push('<div class="' + (type || 'error') + '">' + (message || type || 'erorr') + '</div>');
