@@ -196,7 +196,21 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     exception,
                     exceptionMessage,
                     stack,
-                    colon;
+                    colon,
+                    escapeHTML = function (html) {
+                        return html.replace(/[&<>]/gm, function (tag) {
+                            switch (tag) {
+                            case '<':
+                                return '&lt;';
+                            case '>':
+                                return '&gt;';
+                            case '&':
+                                return '&amp;';
+                            default:
+                                return tag;
+                            }
+                        });
+                    };
 
                 if (Y.Lang.isObject(error)) {
                     if (error.exception) {
@@ -211,11 +225,12 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                     colon = (message && exceptionMessage) ? ': ' : '';
 
                     Y.log(message + colon + exceptionMessage + '\n' + stack, 'error', name || NAME);
-                    exceptionMessage = '<span class="exception" title="' + stack + '">' + exceptionMessage + '</span>';
+                    exceptionMessage = '<span class="exception" title="' + stack + '">' + escapeHTML(exceptionMessage) + '</span>';
 
-                    message = (message + colon + exceptionMessage);
+                    message = (escapeHTML(message) + colon + exceptionMessage);
                 } else {
                     Y.log(error, 'error', name || NAME);
+                    message = escapeHTML(message);
                 }
 
                 debugData._errors.push('<div class="' + (type || 'error') + '">' + (message || type || 'erorr') + '</div>');
@@ -328,7 +343,10 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                         var hook = self.hooks[hookName];
 
                         if (err) {
-                            self.error(hookName, 'Rendering failed on ' + (isBrowser ? 'client' : 'server') + '-side: ' + err, 'error');
+                            self.error(hookName, {
+                                message: 'Rendering failed on ' + (isBrowser ? 'client' : 'server') + '-side',
+                                exception: err
+                            }, 'error');
                         } else {
                             mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
 
@@ -379,33 +397,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             if (!this.config.hooks[hook].description) {
                 this.config.hooks[hook].description = this.config.hooks[hook].title + '.';
             }
-        }/*,
-
-        _decycleHooks: function (hooks) {
-            var self = this,
-                decycledHooks = {},
-                JSON_DEPTH_LIMIT = 7;
-            Y.Object.each(hooks, function (hook, hookName) {
-                decycledHooks[hookName] = Y.mojito.debug.Utils.decycle(hook);
-                return;
-                // TODO: revisit converting the json into an object that references itself.
-                try {
-                    JSON.stringify(hook);
-                    // we know it has no cycles so just copy the object while stringifing functions, no depth limit.
-                    serializedHooks[hookName] = Y.mojito.debug.Utils.transformObject(hook, 0, true, true, true);
-                } catch (e) {
-                    self.error(hookName, 'Unable to serialize debugData: "' + e.message
-                        + '". debugData has been decycled and limited to a depth of ' + (JSON_DEPTH_LIMIT - 1) + '.', 'warning');
-                    serializedHooks[hookName] = Y.mojito.debug.Utils.removeCycles(hook, JSON_DEPTH_LIMIT);
-                }
-            });
-
-            return decycledHooks;
-        },
-
-        _retrocycleHooks: function (hooks) {
-            Y.Object.each(hooks)
-        }*/
+        }
     };
 
     Y.namespace('mojito.addons.ac').debug = DebugAddon;
