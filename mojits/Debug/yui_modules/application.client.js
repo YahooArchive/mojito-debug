@@ -212,7 +212,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             var self = this,
                 body = Y.Node(this.document.body);
 
-            body.all('form').on('submit', function (e) {
+            body.delegate('submit', function (e) {
                 var form = e.currentTarget,
                     url = form.get('action'),
                     parts,
