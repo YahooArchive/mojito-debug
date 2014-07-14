@@ -3,6 +3,17 @@
 
 mojito-debug is an npm package that helps developers debug the client/server sides of their [Mojito](http://developer.yahoo.com/cocktails/mojito/) applications through user-defined debug hooks. These hooks are enabled when a `debug` parameter appears in the url, and the results are displayed on the client-side below the application.
 
+
+## Table of contents
+* [Screenshot](#screen-shot)
+* [Getting Started](#getting-started)
+* [Debug Modes](#debug-modes)
+* [Debugging](#debugging)
+* [API](#api)
+* [Architecture](#architecture-diagram)
+
+## Screenshot
+
 [![NPM](https://nodei.co/npm/mojito-debug.png)](https://nodei.co/npm/mojito-debug/)
 
 [![Screenshot](https://raw.github.com/yahoo/mojito-debug/master/images/screenshot1.png)](https://raw.github.com/yahoo/mojito-debug/master/images/screenshot1.png)
@@ -39,119 +50,6 @@ The debugger has three modes: `default`, `hide`, and `json`. Each of these modes
 * **debug**      - The default mode. Displays the application followed by the debugger.
 * **debug.hide** - Hides the application and just shows the debugger.
 * **debug.json** - Loads a page of content-type 'application/json', that displays all the debug hooks' data as JSON.
-
-## API
-
-<a name="ac.debug.on" href="#ac.debug.on">**ac.debug.on**</a> (hook, callback)
-Gives access to the `debugData` object of an enabled hook.
-* **hook** `string` - The name of the hook.
-* **callback** `function` - The function that is called if the specified hook is enabled. The function passes one argument, `debugData`, an object unique to the specified hook. This object is used to store any debugging data and is passed in subsequent calls to [`ac.debug.on`](#ac.debug.on) for the specified hook.
-
-**Example**
-```
-ac.debug.on('hook-name', function (debugData) {
-    debugData.myData = myData;
-});
-```
-
----
-
-<a name="ac.debug.setContent" href="#ac.debug.setContent">**ac.debug.setContent**</a> (hook, content)
-Set the content of a hook to an HTML string or a JSON object. This is the equivalent of setting `debugData._content` to `content`.
-* **hook** `string` - The name of the hook.
-* **content** `string` | `object` - The content to be displayed. Can be an HTML string or a JSON object.
-
-**Example**
-```
-ac.debug.setContent('hook-name', content);
-```
-
----
-
-<a name="ac.debug.appendTo" href="#ac.debug.appendTo">**ac.debug.appendTo**</a> (hook, content)
-Append new a HTML string or JSON object to the current content of the hook. This is the equivalent of pushing content to the `debugData._append` array.
-* **hook** `string` - The name of the hook.
-* **content** `string` | `object` - The content to be appended. Can be an HTML string or a JSON object.
-
-**Example**
-```
-ac.debug.appendTo('hook-name', content);
-```
-
----
-
-<a name="ac.debug.log" href="#ac.debug.log">**ac.debug.log**</a> (line, [options])
-Logs an HTML line or a JSON object. Lines are shown by the `log` hook whenever enabled.
-* **line** `string` | `object` - The line to log. This line can be an HTML string or a JSON object.
-* **options** `string` | `object` `optional` - Options include the strings `error` and `warn` or a JSONTree options object (see JSONTree documentation).
-
-**Example**
-```
-ac.debug.log('An error occurred:', 'error');
-ac.debug.log(errorObject);
-```
-
----
-
-<a name="ac.debug.get" href="#ac.debug.get">**ac.debug.get**</a> (hook)
-Gets all the data associated with a debug hook.
-* **hook** `string` - The name of the hook.
-* **returns** `object` - The data associated with the hook, this is the same as any configuration specified for this hook plus `debugData`, the object used to store debugging data. On the client-side, this object also includes `binder`, a reference to any associated hook binder, and `hookContainer`, the HookContainer instance representing the hook on the page (See HookContainer).
-
-**Example**
-```
-var hookData = ac.debug.get('hook-name');
-```
-
----
-
-<a name="ac.debug.error" href="#ac.debug.error">**ac.debug.error**</a> (hook, error, type)
-Shows an error on the rendered debug hook.
-* **hook** `string` - The name of the hook.
-* **error** `string` | `object` - The error to display for this hook. As an object it can include a string `message`, the error message; or an exception object, which is appended to the `message` and whose stack is shown when the user mouses over the error.
-* **type** `object` `optional` - The type of error. Can be 'error', 'warning' or any other defined css class.
-
-**Example**
-```
-ac.debug.error('hook-name', {
-    message: 'There was an exception'
-    exception: e
-});
-```
-
----
-
-<a name="ac.debug.clear" href="#ac.debug.clear">**ac.debug.clear**</a> (hook, whitelist)
-Clears the debugData for the specified hook. It may be useful to clear debugging data after using it, to prevent it from being serialized between the server/client sides. This is especially important if the data is very large or contains cycles.
-* **hook** `string` - The name of the hook.
-* **whitelist** `array` `optional` - A list of properties to keep. The rest of the properties in debugData are deleted.
-
-**Example**
-```
-ac.debug.clear('hook-name', [
-    'required-property'
-]);
-```
-
----
-
-<a name="ac.debug.render" href="#ac.debug.render">**ac.debug.render**</a> ([hooks], [callback]) `client-side only`
-On the server-side, hooks get rendered automatically after the application is rendered; however, on the client-side there is no end point, and so the debugger must be told when to render any debugging data resulting from client-side debug hooks that used [`ac.debug.on`](#ac.debug.on).
-* **hooks** `string` | `string[]` `optional` - A hook or list of hooks to render. If nothing is specified, then all hooks that called [`ac.debug.on`](#ac.debug.on) are rendered.
-* **callback** `function` `optional` - An optional callback that is called once all the hooks have been rendered. It passes one argument, hooks, a map of hooks and their corresponding data (the same data that is returned by `ac.debug.get`). This callback can be passed as the only argument.
-
-**Example**
-```
-ac.debug.render(['hook1', 'hook2'], function (hooks) {
-    console.log(Object.keys(hooks).join(', ') + ' have finished rendering');
-});
-```
-
----
-
-<a name="Y.debug" href="#Y.debug">**Y.Debug.***</a> `client-side only`
-
-On the client side, ac.debug can conveniently be accessed through [`Y.Debug`](#Y.debug) within any YUI module that includes `mojito-debug-addon`.
 
 ## Debugging
 
@@ -271,6 +169,119 @@ ac.debug.on('waterfall', function (debugData) {
     waterfall.end('Test');
 });
 ```
+
+## API
+
+<a name="ac.debug.on" href="#ac.debug.on">**ac.debug.on**</a> (hook, callback)
+Gives access to the `debugData` object of an enabled hook.
+* **hook** `string` - The name of the hook.
+* **callback** `function` - The function that is called if the specified hook is enabled. The function passes one argument, `debugData`, an object unique to the specified hook. This object is used to store any debugging data and is passed in subsequent calls to [`ac.debug.on`](#ac.debug.on) for the specified hook.
+
+**Example**
+```
+ac.debug.on('hook-name', function (debugData) {
+    debugData.myData = myData;
+});
+```
+
+---
+
+<a name="ac.debug.setContent" href="#ac.debug.setContent">**ac.debug.setContent**</a> (hook, content)
+Set the content of a hook to an HTML string or a JSON object. This is the equivalent of setting `debugData._content` to `content`.
+* **hook** `string` - The name of the hook.
+* **content** `string` | `object` - The content to be displayed. Can be an HTML string or a JSON object.
+
+**Example**
+```
+ac.debug.setContent('hook-name', content);
+```
+
+---
+
+<a name="ac.debug.appendTo" href="#ac.debug.appendTo">**ac.debug.appendTo**</a> (hook, content)
+Append new a HTML string or JSON object to the current content of the hook. This is the equivalent of pushing content to the `debugData._append` array.
+* **hook** `string` - The name of the hook.
+* **content** `string` | `object` - The content to be appended. Can be an HTML string or a JSON object.
+
+**Example**
+```
+ac.debug.appendTo('hook-name', content);
+```
+
+---
+
+<a name="ac.debug.log" href="#ac.debug.log">**ac.debug.log**</a> (line, [options])
+Logs an HTML line or a JSON object. Lines are shown by the `log` hook whenever enabled.
+* **line** `string` | `object` - The line to log. This line can be an HTML string or a JSON object.
+* **options** `string` | `object` `optional` - Options include the strings `error` and `warn` or a JSONTree options object (see JSONTree documentation).
+
+**Example**
+```
+ac.debug.log('An error occurred:', 'error');
+ac.debug.log(errorObject);
+```
+
+---
+
+<a name="ac.debug.get" href="#ac.debug.get">**ac.debug.get**</a> (hook)
+Gets all the data associated with a debug hook.
+* **hook** `string` - The name of the hook.
+* **returns** `object` - The data associated with the hook, this is the same as any configuration specified for this hook plus `debugData`, the object used to store debugging data. On the client-side, this object also includes `binder`, a reference to any associated hook binder, and `hookContainer`, the HookContainer instance representing the hook on the page (See HookContainer).
+
+**Example**
+```
+var hookData = ac.debug.get('hook-name');
+```
+
+---
+
+<a name="ac.debug.error" href="#ac.debug.error">**ac.debug.error**</a> (hook, error, type)
+Shows an error on the rendered debug hook.
+* **hook** `string` - The name of the hook.
+* **error** `string` | `object` - The error to display for this hook. As an object it can include a string `message`, the error message; or an exception object, which is appended to the `message` and whose stack is shown when the user mouses over the error.
+* **type** `object` `optional` - The type of error. Can be 'error', 'warning' or any other defined css class.
+
+**Example**
+```
+ac.debug.error('hook-name', {
+    message: 'There was an exception'
+    exception: e
+});
+```
+
+---
+
+<a name="ac.debug.clear" href="#ac.debug.clear">**ac.debug.clear**</a> (hook, whitelist)
+Clears the debugData for the specified hook. It may be useful to clear debugging data after using it, to prevent it from being serialized between the server/client sides. This is especially important if the data is very large or contains cycles.
+* **hook** `string` - The name of the hook.
+* **whitelist** `array` `optional` - A list of properties to keep. The rest of the properties in debugData are deleted.
+
+**Example**
+```
+ac.debug.clear('hook-name', [
+    'required-property'
+]);
+```
+
+---
+
+<a name="ac.debug.render" href="#ac.debug.render">**ac.debug.render**</a> ([hooks], [callback]) `client-side only`
+On the server-side, hooks get rendered automatically after the application is rendered; however, on the client-side there is no end point, and so the debugger must be told when to render any debugging data resulting from client-side debug hooks that used [`ac.debug.on`](#ac.debug.on).
+* **hooks** `string` | `string[]` `optional` - A hook or list of hooks to render. If nothing is specified, then all hooks that called [`ac.debug.on`](#ac.debug.on) are rendered.
+* **callback** `function` `optional` - An optional callback that is called once all the hooks have been rendered. It passes one argument, hooks, a map of hooks and their corresponding data (the same data that is returned by `ac.debug.get`). This callback can be passed as the only argument.
+
+**Example**
+```
+ac.debug.render(['hook1', 'hook2'], function (hooks) {
+    console.log(Object.keys(hooks).join(', ') + ' have finished rendering');
+});
+```
+
+---
+
+<a name="Y.debug" href="#Y.debug">**Y.Debug.***</a> `client-side only`
+
+On the client side, ac.debug can conveniently be accessed through [`Y.Debug`](#Y.debug) within any YUI module that includes `mojito-debug-addon`.
 
 ## Architecture Diagram
 
