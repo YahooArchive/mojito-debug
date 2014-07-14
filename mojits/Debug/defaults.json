@@ -1,5 +1,6 @@
 [{
     "settings": [ "master" ],
+    "dependencies": [ "JSONTree" ],
     "config": {
         "hooks": {
            "help": {
