@@ -5,7 +5,7 @@ mojito-debug is an npm package that helps developers debug the client/server sid
 [![NPM](https://nodei.co/npm/mojito-debug.png)](https://nodei.co/npm/mojito-debug/)
 
 ## Table of contents
-* [Screenshot](#screen-shot)
+* [Screenshot](#screenshot)
 * [Getting Started](#getting-started)
 * [Debug Modes](#debug-modes)
 * [Debugging](#debugging)
