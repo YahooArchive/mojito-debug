@@ -4,6 +4,9 @@
     "debugger": {
         "verbs": ["get"],
         "path": "/debug/*",
-        "call": "debug.index"
+        "call": "debug.index",
+        "annotations": {
+            "client": false
+        }
     }
 }]
