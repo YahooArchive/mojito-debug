@@ -26,31 +26,32 @@ module.exports = function (midConfig) {
                 // If the entry point is 'debug', reroute to page not found.
                 // This prevents the user from calling the debugger directly
                 // through its entry point instead of a debug parameter.
-                req.url = null;
+                res.statusCode = 404;
+                res.setHeader('Content-Type', 'text/html');
+                res.end('Not Found');
                 Y.log('Request attempting to access debugger route directly!', 'warn');
+                return;
+            }
 
-            } else {
+            for (key in url.query) {
+                if (url.query.hasOwnProperty(key) && DEBUG_PARAM_REGEXP.test(key)) {
 
-                for (key in url.query) {
-                    if (url.query.hasOwnProperty(key) && DEBUG_PARAM_REGEXP.test(key)) {
+                    // Set mojito-debug global to an object that indicates
+                    // that the debugger is enabled and what the original
+                    // url was...
 
-                        // Set mojito-debug global to an object that indicates
-                        // that the debugger is enabled and what the original
-                        // url was...
+                    req.globals = req.globals || {};
+                    req.globals['mojito-debug'] = {
+                        originalUrl: req.url,
+                        debugStart: process.hrtime()
+                    };
 
-                        req.globals = req.globals || {};
-                        req.globals['mojito-debug'] = {
-                            originalUrl: req.url,
-                            debugStart: process.hrtime()
-                        };
+                    // Set the request url to the debugger route which will
+                    // handle the request.
+                    req.url = '/debug' + req.url;
 
-                        // Set the request url to the debugger route which will
-                        // handle the request.
-                        req.url = '/debug' + req.url;
-
-                        // The first debug parameter wins!
-                        break;
-                    }
+                    // The first debug parameter wins!
+                    break;
                 }
             }
         }
