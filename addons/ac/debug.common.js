@@ -337,7 +337,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                         instance: hook,
                         action: hook.action || 'index',
                         context: ac.context,
-                        params: hook.params
+                        params: Y.merge(ac.params.params, hook.params)
                     },
                     adapter = new Y.mojito.debug.OutputHandler(hookName + '-hook', function (err, data, meta) {
                         var hook = self.hooks[hookName];

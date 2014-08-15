@@ -35,7 +35,7 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
                 i = 0,
                 j = 0,
                 aliasHook,
-                sectionsNode = node.one('.sections'),
+                sectionsNode = node.one('.debug-sections'),
                 sections = {
                     Modes: {
                         Hide: {
@@ -92,7 +92,7 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
             var self = this,
                 itemNode = Y.Node.create('<ul/>').addClass('item'),
                 closeButton = Y.Node.create('<li/>').addClass('close button').set('text', '(X)'),
-                titleNode = Y.Node.create('<li/>').addClass('title link').set('text', title + ':').set('title', item.hook || item.mode),
+                titleNode = Y.Node.create('<li/>').addClass('debug-title debug-link').set('text', title + ':').set('title', item.hook || item.mode),
                 description = Y.Node.create('<li/>').addClass('description').set('text', item.description);
 
             if (item.active) {
@@ -141,7 +141,7 @@ YUI.add('mojito-debug-help-binder', function (Y, NAME) {
         createSection: function (title, section) {
             var self = this,
                 sectionNode = Y.Node.create('<div/>'),
-                titleNode = Y.Node.create('<div/>').addClass('title').set('text', title),
+                titleNode = Y.Node.create('<div/>').addClass('debug-title').set('text', title),
                 itemGroup = Y.Node.create('<ul/>').addClass('item-group');
 
             Y.Array.each(Y.Object.keys(section), function (itemTitle) {

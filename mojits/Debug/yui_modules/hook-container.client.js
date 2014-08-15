@@ -11,13 +11,13 @@ YUI.add('mojito-debug-hook-container', function (Y) {
     var HookContainer = function (hookName, hook) {
         var title = hook.config.title,
             description = hook.config.description,
-            node = Y.Node.create('<div/>').addClass('maximized hook-container').set('id', hookName + '-hook'),
-            header = Y.Node.create('<div/>').addClass('header no-select'),
-            titleNode = Y.Node.create('<span/>').addClass('title').set('text', title).set('title', description),
-            closeButton = Y.Node.create('<span/>').addClass('close button').set('text', 'x'),
-            minimize = Y.Node.create('<span/>').addClass('minimize button').set('innerHTML', '&ndash;'),
-            maximize = Y.Node.create('<span/>').addClass('maximize button').set('innerHTML', '&#9634;'),
-            contentWrapper = Y.Node.create('<div/>').addClass('content-wrapper').addClass(hook.config['class']);
+            node = Y.Node.create('<div/>').addClass('debug-maximized hook-container').set('id', hookName + '-hook'),
+            header = Y.Node.create('<div/>').addClass('debug-header no-select'),
+            titleNode = Y.Node.create('<span/>').addClass('debug-title').set('text', title).set('title', description),
+            closeButton = Y.Node.create('<span/>').addClass('debug-close debug-button').set('text', 'x'),
+            minimize = Y.Node.create('<span/>').addClass('debug-minimize debug-button').set('innerHTML', '&ndash;'),
+            maximize = Y.Node.create('<span/>').addClass('debug-maximize debug-button').set('innerHTML', '&#9634;'),
+            contentWrapper = Y.Node.create('<div/>').addClass('debug-content-wrapper').addClass(hook.config['class']);
 
         this.opened = true;
         this.maximized = true;
@@ -52,14 +52,14 @@ YUI.add('mojito-debug-hook-container', function (Y) {
         Y.mix(node, HookContainer.prototype);
 
         if (hook) {
-            node.update(hook);
+            node.update(hookName, hook);
         }
 
         return node;
     };
 
     HookContainer.prototype = {
-        update: function (hook) {
+        update: function (hookName, hook) {
             if (!this.hookContent) {
                 this.hookContent = new Y.mojito.debug.HookContent();
                 this.contentWrapper.append(this.hookContent);
@@ -106,9 +106,9 @@ YUI.add('mojito-debug-hook-container', function (Y) {
             }
 
             if (this.maximized) {
-                this.addClass('maximized');
+                this.addClass('debug-maximized');
             } else {
-                this.removeClass('maximized');
+                this.removeClass('debug-maximized');
             }
 
             if (!this.maximized) {
@@ -132,6 +132,7 @@ YUI.add('mojito-debug-hook-container', function (Y) {
     Y.namespace('mojito.debug').HookContainer = HookContainer;
 }, '0.0.1', {
     requires: [
+        'mojito-debug-addon',
         'mojito-debug-hook-content',
         'transition'
     ]

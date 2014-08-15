@@ -36,44 +36,44 @@ body {
     cursor: default;
 }
 
-.content .section {
+.debug-content .debug-section {
     margin-left: 10px;
 }
 
-.content .error {
+.debug-content .debug-error {
     color: #b13
 }
 
-.content .warning, .content .warn {
+.debug-content .debug-warning, .debug-content .debug-warn {
     color: #d83;
 }
 
-.content .title {
+.debug-content .debug-title {
     color: #282828;
     font-weight: bold;
 }
 
-.content .link {
+.debug-content .debug-link {
     color: #005580;
     cursor: pointer;
     text-decoration: none;
 }
 
-.content .link:hover {
+.debug-content .debug-link:hover {
     color: #108AC7;
 }
 
-.content .exception {
+.debug-content .debug-exception {
     cursor: pointer;
     text-decoration: underline;
     color: #A31919;
     font-weight: bold;
 }
 
-.content .exception:hover {
+.debug-content .debug-exception:hover {
     color: #D62323;
 }
 
-.debug-log-hook > .content > .hook {
+.debug-log-hook > .debug-content > .debug-hook {
     font-family: Courier
 }

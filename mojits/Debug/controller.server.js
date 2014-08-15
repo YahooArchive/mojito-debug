@@ -213,6 +213,17 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 hooks = Y.mojito.debug.Utils.retrocycle(body.hooks),
                 command = body.command,
                 adapter = new Y.mojito.OutputBuffer('proxy', function (err, data, meta) {
+                    var headers = (meta.http && meta.http.headers) || {},
+                        dataIsJson = headers['content-type'] === 'application/json' ||
+                            (headers['content-type'] || []).indexOf('application/json') !== -1;
+
+                    if (dataIsJson && Y.Lang.isString(data)) {
+                        try {
+                            data = JSON.parse(data);
+                        } catch (e) {
+                            Y.log('Error parsing JSON string.', 'error', NAME);
+                        }
+                    }
                     ac.http.setHeader('Content-type', 'application/json');
                     ac.done(JSON.stringify({
                         data: data,

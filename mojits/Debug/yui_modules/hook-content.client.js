@@ -10,14 +10,14 @@
 YUI.add('mojito-debug-hook-content', function (Y) {
     'use strict';
     var HookContent = function () {
-        var node = Y.Node.create('<div/>').addClass('content');
+        var node = Y.Node.create('<div/>').addClass('debug-content');
 
         this.hook = Y.Node.create('<div/>')
                           .addClass('hook')
-                          .append('<div class="line">[Empty]</div>');
+                          .append('<div class="debug-line">[Empty]</div>');
         this.errors = Y.Node.create('<div/>')
-                            .addClass('errors')
-                            .append('<div class="title">Errors</div>');
+                            .addClass('debug-errors')
+                            .append('<div class="debug-title">Errors</div>');
 
 
         this.isEmpty = true;
@@ -43,7 +43,7 @@ YUI.add('mojito-debug-hook-content', function (Y) {
                 appendIsEmpty = debugData._append.length === 0;
 
             if (!errorsIsEmpty) {
-                errors.addClass('enabled');
+                errors.addClass('debug-enabled');
                 while (i < debugData._errors.length) {
                     if (prevError === debugData._errors[i]) {
                         duplicateErrors++;
@@ -84,10 +84,37 @@ YUI.add('mojito-debug-hook-content', function (Y) {
                 this.isEmpty = false;
             }
 
-            if (errors.hasClass('enabled') && !this.isEmpty) {
+            if (errors.hasClass('debug-enabled') && !this.isEmpty) {
                 errors.setStyle('margin-bottom', 10);
             } else {
                 errors.setStyle('margin-bottom', 0);
+            }
+
+            this._executeInlinedScripts(hook._node);
+        },
+
+        // Any scripts contain in assets.blob must be created using document.createElment('script'),
+        // and then replaced, otherwise the scripts never get executed.
+        _executeInlinedScripts: function (node) {
+            var i,
+                child,
+                script;
+
+            if (node.tagName === 'SCRIPT') {
+                script = document.createElement('script');
+                script.text = node.text;
+                for (i = 0; i < node.attributes.length; i++) {
+                    if (node.attributes[i].specified) {
+                        script[node.attributes[i].name] = node.attributes[i].value;
+                    }
+                }
+                node.parentNode.replaceChild(script, node);
+                return;
+            }
+
+            for (i = 0; i < node.children.length; i++) {
+                child = node.children[i];
+                this._executeInlinedScripts(child);
             }
         },
 
@@ -95,7 +122,8 @@ YUI.add('mojito-debug-hook-content', function (Y) {
             if (Y.Lang.isObject(line)) {
                 container.append(new Y.mojito.debug.JSONTree(line));
             } else {
-                container.append('<div class="line">' + line + '</div>');
+
+                container.append('<div class="debug-line">' + line + '</div>');
             }
         }
     };

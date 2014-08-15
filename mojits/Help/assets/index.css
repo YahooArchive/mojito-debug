@@ -47,7 +47,7 @@
     margin: 0 3px 0 0;
 }
 
-#help-hook .content .item .close {
+#help-hook .debug-content .item .close {
     color: #933;
     cursor: pointer;
     font-size: x-small;
@@ -56,10 +56,10 @@
     visibility: hidden;
 }
 
-#help-hook .content .close:hover {
+#help-hook .debug-content .close:hover {
     color: #d22;
 }
 
-#help-hook .content .active.item .close {
+#help-hook .debug-content .active.item .close {
     visibility: visible;
 }

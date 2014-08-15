@@ -76,6 +76,8 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 showDebugger = function () {
                     if (loaded) {
                         self.debuggerNode.setStyle('display', 'block');
+                        Y.fire('debugger:displayed');
+                        showDebugger = function () {};
                     }
                 },
                 done = function () {

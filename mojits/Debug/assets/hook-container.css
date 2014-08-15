@@ -12,7 +12,7 @@
     margin: 5px 5px 15px 5px;
 }
 
-.hook-container > .header {
+.hook-container > .debug-header {
     border-radius: 5px 5px 0 0;
     color: #E7E5E5;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
@@ -30,68 +30,68 @@
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#aaaaaa', endColorstr='#939393',GradientType=0 ); /* IE6-9 */
 }
 
-.hook-container > .header > :hover {
+.hook-container > .debug-header > :hover {
     color: #fff;
 }
 
-.hook-container > .header > * {
+.hook-container > .debug-header > * {
     cursor: pointer;
 }
 
-.hook-container.error > .header {
+.hook-container.error > .debug-header {
     color: #ffbbaa;
 }
 
-.hook-container.error > .header:hover {
+.hook-container.error > .debug-header:hover {
     color: #ffccbb;
 }
 
-.hook-container > .header > .button {
+.hook-container > .debug-header > .debug-button {
     float: right;
     text-shadow: 0 0 2px rgb(68, 68, 68);
     margin-right: 4px;
 }
 
-.hook-container > .header > .close.button {
+.hook-container > .debug-header > .close.debug-button {
     font-size: 17px;
     margin-top: -1px;
 }
 
-.hook-container.maximized > .header > .minimize.button {
+.hook-container.debug-maximized > .debug-header > .debug-minimize.debug-button {
     margin-right: 10px;
     font-size: 23px;
     line-height: 15px;
     display:block;
 }
 
-.hook-container.maximized > .header > .maximize.button {
+.hook-container.debug-maximized > .debug-header > .debug-maximize.debug-button {
     display: none;
 }
 
-.hook-container > .header > .minimize.button {
+.hook-container > .debug-header > .debug-minimize.debug-button {
     display: none;
 }
 
-.hook-container > .header > .maximize.button {
+.hook-container > .debug-header > .debug-maximize.debug-button {
     margin-right: 10px;
     font-size: 12px;
     margin-top: 3px;
     display: block;
 }
 
-.hook-container > .content-wrapper {
+.hook-container > .debug-content-wrapper {
     background-color: #fff;
     overflow-y: visible;
     overflow-x: auto;
     clear: both;
 }
 
-.hook-container > .content-wrapper > .content {
+.hook-container > .debug-content-wrapper > .debug-content {
     padding: 3px;
     border-radius: 0 0 5px 5px;
 }
 
-.hook-container > .content-wrapper > .content  > .errors {
+.hook-container > .debug-content-wrapper > .debug-content  > .debug-errors {
     border-radius: 5px;
     border: 1px solid black;
     background: #fffff4;
@@ -99,16 +99,16 @@
     display: none;
 }
 
-.hook-container > .content-wrapper > .content  > .errors.enabled {
+.hook-container > .debug-content-wrapper > .debug-content  > .debug-errors.enabled {
     display: inline-block;
 }
 
-.hook-container > .content-wrapper > .content  > .errors > .line {
+.hook-container > .debug-content-wrapper > .debug-content  > .debug-errors > .debug-line {
     margin-left: 5px;
     margin-right: 5px;
     margin-top: 3px;
 }
 
-.hook-container > .content-wrapper > .content  > .errors > .title {
+.hook-container > .debug-content-wrapper > .debug-content  > .debug-errors > .debug-title {
     color: #833C3C;
 }
