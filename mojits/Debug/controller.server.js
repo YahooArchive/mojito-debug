@@ -166,18 +166,35 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
         debugJson: function (ac) {
             var hooks;
 
-            try {
-                hooks = JSON.stringify(ac.debug.hooks, null, '    ');
-            } catch (e) {
-                hooks = JSON.stringify(Y.mojito.debug.Utils.transformObject(ac.debug.hooks, 7, true, false, false), null, '    ');
-            }
-
-            ac.done(hooks, {
-                http: {
-                    headers: {
-                        'content-type': 'application/json; charset="utf-8"'
+            ac.debug._render(function (hooks, hooksMeta) {
+                var jsonHooks = {};
+                Y.Object.each(hooks, function (hook, hookName) {
+                    if (Y.Lang.isString(hook.debugData._content)) {
+                        try {
+                            hook.debugData._content = JSON.parse(hook.debugData._content);
+                        } catch (e) {
+                            ac.debug.error(hookName, {
+                                message: 'Error parsing ' + hookName + ' JSON data.',
+                                exception: e
+                            }, 'error', NAME);
+                        }
                     }
+                    jsonHooks[hookName] = hook.debugData._content;
+                });
+
+                try {
+                    jsonHooks = JSON.stringify(jsonHooks, null, '    ');
+                } catch (e) {
+                    jsonHooks = JSON.stringify(Y.mojito.debug.Utils.transformObject(jsonHooks, 7, true, false, false), null, '    ');
                 }
+
+                ac.done(jsonHooks, {
+                    http: {
+                        headers: {
+                            'content-type': 'application/json; charset="utf-8"'
+                        }
+                    }
+                });
             });
         },
 

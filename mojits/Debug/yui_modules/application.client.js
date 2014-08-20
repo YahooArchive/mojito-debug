@@ -73,8 +73,9 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 window = self.window,
                 document = self.document,
                 loaded = false,
+                forceShow = false,
                 showDebugger = function () {
-                    if (loaded) {
+                    if (forceShow || loaded) {
                         self.debuggerNode.setStyle('display', 'block');
                         Y.fire('debugger:displayed');
                         showDebugger = function () {};
@@ -137,6 +138,14 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             }
 
             iframe.on('load', done);
+
+            // Make sure that the debugger is shown after a timeout
+            // This ensures that if some application resource delays the document
+            // load event, then the debugger is unblocked.
+            setTimeout(function () {
+                forceShow = true;
+                showDebugger();
+            }, 2000);
         },
 
         _urlIsInternal: function (url) {

@@ -183,6 +183,12 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }.bind(this));
         },
 
+        _setJson: function (hook, json) {
+            this.on(hook, function (debugData) {
+                debugData._json = json;
+            });
+        },
+
         _appendContent: function (hook, content) {
             this.on(hook, function (debugData) {
                 debugData._append.push(content);
@@ -363,7 +369,22 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
                 Y.mix(adapter, ac._adapter);
 
-                ac._dispatch(command, adapter);
+                if (self.mode === 'json') {
+                    ac.dispatcher.store.expandInstance(command.instance, ac.context, function (err, newInst) {
+                        var controller = Y.mojito.controllers[newInst.controller],
+                            debugData = ac.debug.hooks[hookName].debugData;
+                        if (controller && (controller.json || controller.prototype.json)) {
+                            // The controller has a json action, which is used to render the hook.
+                            command.action = newInst.action = 'json';
+                            command.instance = newInst;
+                            ac._dispatch(command, adapter);
+                        } else {
+                            adapter(null, debugData._json || debugData._content || debugData, {});
+                        }
+                    });
+                } else {
+                    ac._dispatch(command, adapter);
+                }
             });
         },
 
@@ -382,7 +403,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 debugData: {
                     _errors: [],
                     _content: null,
-                    _append: []
+                    _append: [],
+                    _json: null
                 }
             };
 
