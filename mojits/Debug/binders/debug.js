@@ -441,7 +441,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     hook.hookContainer = new Y.mojito.debug.HookContainer(hookName, hook);
                     self.debuggerNode.append(hook.hookContainer);
                 } else {
-                    hook.hookContainer.update(hook);
+                    hook.hookContainer.update(hookName, hook);
                 }
                 hook._rendered = false;
             });
