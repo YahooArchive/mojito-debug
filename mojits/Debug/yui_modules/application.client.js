@@ -91,11 +91,6 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                         return;
                     }
 
-                    if (self.opened) {
-                        iframe.setStyle('height', 'auto');
-                        iframe.setStyle('height', self.window.document.body.scrollHeight + 'px');
-                    }
-
                     // If either catching of navigation was not possible, now it is
                     // since the iframe is fully loaded.
                     self._catchLinkNavigation();
