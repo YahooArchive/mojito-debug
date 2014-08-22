@@ -1,6 +1,6 @@
 {
     "name": "mojito-debug",
-    "version": "0.0.24",
+    "version": "0.0.25",
     "description": "mojito-debug helps developers debug their applications through debug hooks, whose results are shown on the client-side under the application when the 'debug' parameter appears in the URL.",
     "author": "Albert Jimenez <jimenez@yahoo-inc.com>",
     "dependencies": {
