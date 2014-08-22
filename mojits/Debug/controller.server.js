@@ -168,10 +168,18 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
             ac.debug._render(function (hooks, hooksMeta) {
                 var jsonHooks = {};
+
                 Y.Object.each(hooks, function (hook, hookName) {
-                    if (Y.Lang.isString(hook.debugData._content)) {
+                    Y.Array.each(['errors', 'content', 'append', 'json'], function (attr) {
+                        attr = '_' + attr;
+                        if (!hook.debugData[attr] || hook.debugData[attr].length === 0) {
+                            delete hook.debugData[attr];
+                        }
+                    });
+                    hook.debugData = hook.debugData._json || hook.debugData._content || hook.debugData;
+                    if (Y.Lang.isString(hook.debugData)) {
                         try {
-                            hook.debugData._content = JSON.parse(hook.debugData._content);
+                            hook.debugData = JSON.parse(hook.debugData);
                         } catch (e) {
                             ac.debug.error(hookName, {
                                 message: 'Error parsing ' + hookName + ' JSON data.',
@@ -179,7 +187,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                             }, 'error', NAME);
                         }
                     }
-                    jsonHooks[hookName] = hook.debugData._content;
+                    jsonHooks[hookName] = hook.debugData;
                 });
 
                 try {

@@ -251,7 +251,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                 hook.debugData = {
                     _errors: debugData._errors,
                     _append: debugData._append,
-                    _content: debugData._content
+                    _content: debugData._content,
+                    _json: debugData._json
                 };
 
                 if (whitelist) {
@@ -289,6 +290,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             Y.Array.each(hooks, function (hookName) {
                 var hook = self.hooks[hookName],
                     prepareToRender;
+
                 if (!hook || !hook._modified) {
                     return;
                 }
@@ -355,15 +357,14 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
                             }, 'error');
                         } else {
                             mergedMeta = Y.mojito.util.metaMerge(mergedMeta, meta);
-
                             hook.debugData._content = data;
-                            hook._viewId = meta.view.id;
+                            hook._viewId = (meta.view && meta.view.id) || Y.guid();
                         }
 
                         hook._rendered = true;
 
                         if (--numHooksToRender === 0) {
-                            return done && done(Y.mix(self.hooks, self.hooks, true, hooks), mergedMeta);
+                            return done && done(Y.mix({}, self.hooks, true, hooks), mergedMeta);
                         }
                     }, self.MojitoClient);
 
@@ -371,15 +372,15 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
                 if (self.mode === 'json') {
                     ac.dispatcher.store.expandInstance(command.instance, ac.context, function (err, newInst) {
-                        var controller = Y.mojito.controllers[newInst.controller],
+                        var controller = newInst && Y.mojito.controllers[newInst.controller],
                             debugData = ac.debug.hooks[hookName].debugData;
-                        if (controller && (controller.json || controller.prototype.json)) {
+                        if (controller && (controller.json || (controller.prototype && controller.prototype.json))) {
                             // The controller has a json action, which is used to render the hook.
                             command.action = newInst.action = 'json';
                             command.instance = newInst;
                             ac._dispatch(command, adapter);
                         } else {
-                            adapter(null, debugData._json || debugData._content || debugData, {});
+                            adapter.callback(null, debugData._content, {});
                         }
                     });
                 } else {
