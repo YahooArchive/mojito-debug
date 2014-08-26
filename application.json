@@ -37,6 +37,12 @@
                         "type": "Help"
                     },
 
+                    "console": {
+                        "title": "Server Console",
+                        "description": "Displayes the server side console, and can control YUI log levels.",
+                        "type": "Console"
+                    },
+
                     "log": {
                         "title": "Log",
                         "class": "debug-log-hook",

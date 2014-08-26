@@ -7,6 +7,14 @@
 /*jslint node: true, nomen: true */
 /*global YUI */
 
+YUI().applyConfig({
+    modules: {
+        'mojito-debug-console': {
+            fullpath: require('path').join(__dirname, '../../yui_modules/console.server.js')
+        }
+    }
+});
+
 YUI.add('addon-rs-debug', function (Y, NAME) {
     'use strict';
 
@@ -29,6 +37,8 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
             this.overwriteAppConfig = false;
 
             this.mergeAppConfig();
+            this.console = new Y.mojito.debug.Console(1000);
+            this.console.hookConsole();
         },
 
         mergeAppConfig: function () {
@@ -69,6 +79,7 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
 }, '0.0.1', {
     requires: [
         'plugin',
-        'oop'
+        'oop',
+        'mojito-debug-console'
     ]
 });

@@ -1,0 +1,52 @@
+
+#console-hook .debug-content {
+    padding: 0;
+}
+
+.debug-console {
+    position: relative;
+}
+
+.debug-console-logs {
+    max-height: 400px;
+    overflow: scroll;
+    margin: 0;
+    background: #1A1A1A;
+    padding: 5px;
+    color: white;
+    font-size: 12px;
+    border-radius: 0 0 5px 5px;
+}
+
+.debug-console-logs p {
+    margin: 1px 0;
+    white-space: pre-wrap;
+}
+
+.debug-console-menu {
+    background: rgb(44, 44, 44);
+    opacity: 0.8;
+    border-radius: 5px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    color: white;
+    padding: 5px;
+    border: 1px solid;
+}
+
+.debug-console-options {
+    margin-left: 10px;
+    margin-bottom: 10px
+}
+
+.debug-console-options input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.debug-console-options > span {
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+
