@@ -84,11 +84,11 @@
     overflow-y: visible;
     overflow-x: auto;
     clear: both;
+    border-radius: 0 0 5px 5px;
 }
 
 .hook-container > .debug-content-wrapper > .debug-content {
     padding: 3px;
-    border-radius: 0 0 5px 5px;
 }
 
 .hook-container > .debug-content-wrapper > .debug-content  > .debug-errors {

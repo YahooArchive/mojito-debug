@@ -61,7 +61,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 }
             });
             if (self.mode === 'hide') {
-                self.debuggerNode.setStyle('display', 'block');
+                self.debuggerNode.removeClass('debug-hidden');
             }
 
             delete self.mojitProxy.data;
