@@ -1,0 +1,138 @@
+.debug-usage {
+    color: #333;
+    margin: 5px;
+}
+
+.debug-usage input:focus, .debug-usage select:focus {
+    outline: none;
+}
+
+.debug-usage-cpu {
+    float: left;
+    margin-right: 50px;
+}
+
+.debug-usage-memory {
+    float: left;
+}
+
+.debug-usage h2, .debug-usage h3 {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: black;
+}
+.debug-usage h2 {
+    font-size: 15px;
+}
+.debug-usage h3 {
+    font-size: 13px;
+}
+
+.debug-usage-heap-section > div {
+    float: left;
+    margin-bottom: 5px;
+}
+
+.debug-usage-heap-list {
+    min-width: 160px;
+    display: block;
+    margin: 0 10px 5px 0;
+}
+
+.debug-usage-waiting {
+    height: 26px;
+    margin-left: 5px;
+    visibility: hidden;
+}
+.debug-usage.creating-heap .debug-usage-heap-section .debug-usage-waiting,
+.debug-usage.deleting-heap .debug-usage-heap-info .debug-usage-waiting,
+.debug-usage.downloading-heap .debug-usage-heap-info .debug-usage-waiting {
+    visibility: visible;
+}
+
+.debug-usage-heap-section {
+    float: left;
+}
+
+.debug-usage-heap-info {
+    border-radius: 5px;
+    border: 1px solid;
+    padding: 10px;
+    background: #fffff4;
+    display: none;
+    float: left;
+}
+
+.debug-usage-heap-info-buttons {
+    margin-top: 10px;
+}
+
+.debug-usage-heap-info-buttons > * {
+    float: left;
+}
+
+.debug-usage-button.debug-usage-delete {
+    margin-left: 10px;
+}
+
+.debug-usage-button {
+    font: 99% arial,helvetica,clean,sans-serif;
+    display: inline-block;
+    vertical-align: baseline;
+    zoom: 1;
+    font-size: 100%;
+    margin: 0;
+    text-align: center;
+    padding: 5px 10px;
+    line-height: 1;
+    border-radius: 3px;
+    color: #fff;
+    /*pointer-events: none;*/
+    border: 1px solid;
+    box-shadow: 1px 1px 0px 1px rgba(0, 0, 0, 0.67);
+    vertical-align: top;
+}
+.debug-usage-button:select {
+    border-style: none;
+}
+.debug-usage-button:hover {
+    cursor: pointer;
+}
+.debug-usage-button.blue {
+    border-color: #6D77AC;
+    background-color: #818DCF;
+}
+.debug-usage-button.blue:hover {
+    background-color: #6674C2;
+}
+.debug-usage-button.green {
+    border-color: #5F885E;
+    background-color: #7BB179;
+}
+.debug-usage-button.green:hover {
+    border-color: #4D684D;
+    background-color: #729C71;
+}
+.debug-usage-button.red {
+    border-color: #885F5E;
+    background-color: #B17B79;
+}
+.debug-usage-button.red:hover {
+    border-color: #684D4D;
+    background-color: #9C7271;
+}
+
+.debug-usage.creating-heap .debug-usage-button.debug-usage-create {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.debug-usage.deleting-heap .debug-usage-button.debug-usage-delete {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.debug-usage.downloading-heap .debug-usage-button.debug-usage-downloading {
+    opacity: 0.7;
+    pointer-events: none;
+}

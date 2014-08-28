@@ -3,8 +3,17 @@
 
     "debugger": {
         "verbs": ["get"],
-        "path": "/debug/*",
+        "path": "/debug",
         "call": "debug.index",
+        "annotations": {
+            "client": false
+        }
+    },
+
+    "downloadHeapDump": {
+        "verbs": ["get"],
+        "path": "/debug/heapdump",
+        "call": "@Usage.downloadHeapDump",
         "annotations": {
             "client": false
         }

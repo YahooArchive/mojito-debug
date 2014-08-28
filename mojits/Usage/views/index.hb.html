@@ -1,0 +1,33 @@
+<div id="{{{mojit_view_id}}}" class="debug-usage">
+    <div class="debug-usage-cpu">
+        <h2>CPU Usage</h2>
+        <div class="debug-section">
+            <b>Current:&nbsp;</b><span class="debug-usage-cpu-current">11.4%</span><br/>
+            <b>Average:&nbsp;</b><span class="debug-usage-cpu-average">8.4%</span>
+        </div>
+    </div>
+    <div class="debug-usage-memory">
+        <h2>Memory Usage</h2>
+        <div class="debug-section">
+            <b>Current:&nbsp;</b><span class="debug-usage-memory-current">598 Mb</span><br/>
+            <h3 style="margin-top:5px">Heap Dumps</h3>
+            <div class="debug-usage-heap-section">
+                <select class="debug-usage-heap-list" size="5"></select>
+                <input class="debug-usage-create debug-usage-button green" type="button" value="New Heapdump">
+                <img class="debug-usage-waiting" src="/static/Usage/assets/waiting.gif" alt="Waiting"></img>
+            </div>
+            <div class="debug-usage-heap-info">
+                <h3 class="debug-usage-heap-date"></h3>
+                <b>Size: <span class="debug-usage-heap-size"></span></b><br/>
+                <div class="debug-usage-heap-info-buttons">
+                    <form "debug-usage-download-form" action="/debug/heapdump" method="get">
+                        <input class="debug-usage-info-time" type="hidden" name="time"/>
+                        <input class="debug-usage-download debug-usage-button blue" type="submit" value="Download"/>
+                    </form>
+                    <input class="debug-usage-delete debug-usage-button red" type="button" value="Delete">
+                    <img class="debug-usage-waiting" src="/static/Usage/assets/waiting.gif" alt="Waiting"></img>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

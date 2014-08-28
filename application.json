@@ -47,6 +47,11 @@
                         "title": "Waterfall",
                         "description": "Displays a visualization of time performance for this request.",
                         "type": "Waterfall"
+                    },
+                    "usage": {
+                        "title": "Usage",
+                        "description": "Displays cpu and memory usage information.",
+                        "type": "Usage"
                     }
                 },
                 "aliases": {

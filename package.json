@@ -5,7 +5,8 @@
     "author": "Albert Jimenez <jimenez@yahoo-inc.com>",
     "dependencies": {
         "ycb": "1.0.x",
-        "mojito-waterfall": "0.0.x"
+        "mojito-waterfall": "0.0.x",
+        "heapdump": "0.2.x"
     },
     "devDependencies": {
         "mojito": "0.9.x",
