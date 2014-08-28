@@ -16,43 +16,33 @@ module.exports = function (midConfig) {
         DEBUG_PARAM_REGEXP = /^debug(\.[a-zA-Z0-9]+)?$/;
 
     return function (req, res, next) {
-        var appConfig = store.getAppConfig(req.context), url, key;
+        var appConfig = store.getAppConfig(req.context), url, key,
+            originalUrl = req.url;
 
         if (appConfig.specs.debug.enabled) {
 
             url = liburl.parse(req.url, true);
 
-            if (url.pathname.indexOf('/debug') === 0) {
-                // If the entry point is 'debug', reroute to page not found.
-                // This prevents the user from calling the debugger directly
-                // through its entry point instead of a debug parameter.
-                res.statusCode = 404;
-                res.setHeader('Content-Type', 'text/html');
-                res.end('Not Found');
-                Y.log('Request attempting to access debugger route directly!', 'warn');
-                return;
+            if (req.url.indexOf('/debug') !== 0) {
+                for (key in url.query) {
+                    if (url.query.hasOwnProperty(key) && DEBUG_PARAM_REGEXP.test(key)) {
+
+                        // Set the request url to the debugger route which will
+                        // handle the request.
+                        req.url = '/debug';
+
+                        // The first debug parameter wins!
+                        break;
+                    }
+                }
             }
 
-            for (key in url.query) {
-                if (url.query.hasOwnProperty(key) && DEBUG_PARAM_REGEXP.test(key)) {
-
-                    // Set mojito-debug global to an object that indicates
-                    // that the debugger is enabled and what the original
-                    // url was...
-
-                    req.globals = req.globals || {};
-                    req.globals['mojito-debug'] = {
-                        originalUrl: req.url,
-                        debugStart: process.hrtime()
-                    };
-
-                    // Set the request url to the debugger route which will
-                    // handle the request.
-                    req.url = '/debug' + req.url;
-
-                    // The first debug parameter wins!
-                    break;
-                }
+            if (req.url.indexOf('/debug') === 0) {
+                req.globals = req.globals || {};
+                req.globals['mojito-debug'] = {
+                    originalUrl: originalUrl,
+                    debugStart: process.hrtime()
+                };
             }
         }
 

@@ -99,7 +99,7 @@
     display: none;
 }
 
-.hook-container > .debug-content-wrapper > .debug-content  > .debug-errors.enabled {
+.hook-container > .debug-content-wrapper > .debug-content  > .debug-errors.debug-enabled {
     display: inline-block;
 }
 

@@ -40,8 +40,15 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 debugData.appStart = process.hrtime();
             });
 
+            if (req.url === req.globals['mojito-debug'].originalUrl) {
+                self.runDebugger(ac, function (err, data, meta) {
+                    ac.done(data, meta);
+                });
+                return;
+            }
+
             // Remove the /debug route which was added by the debugger middleware.
-            req.url = req.url.replace(/^\/debug/, '');
+            req.url = req.globals['mojito-debug'].originalUrl;
 
             ac.debug.timing.server.debugStart = req.globals['mojito-debug'].debugStart[0] * 1e3 + req.globals['mojito-debug'].debugStart[1] / 1e6;
             ac.debug.timing.server.appStart = self._getTime(ac);
@@ -158,7 +165,9 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 ac.data.set('config', ac.debug.config);
                 ac.data.set('timing', ac.debug.timing);
 
-                ac.done({}, hooksMeta);
+                ac.done({
+                    showApplication: !!ac.debug.flushes
+                }, hooksMeta);
             });
             ac.debug.timing.server.debugEnd = self._getTime(ac);
         },
@@ -237,8 +246,8 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                 url = ac.params.url(),
                 hooks = Y.mojito.debug.Utils.retrocycle(body.hooks),
                 command = body.command,
-                adapter = new Y.mojito.OutputBuffer('proxy', function (err, data, meta) {
-                    var headers = (meta.http && meta.http.headers) || {},
+                adapter = new Y.mojito.OutputBuffer('proxy', function (error, data, meta) {
+                    var headers = (meta && meta.http && meta.http.headers) || {},
                         dataIsJson = headers['content-type'] === 'application/json' ||
                             (headers['content-type'] || []).indexOf('application/json') !== -1;
 
@@ -251,6 +260,7 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
                     }
                     ac.http.setHeader('Content-type', 'application/json');
                     ac.done(JSON.stringify({
+                        error: error instanceof Error ? error.toString() : error,
                         data: data,
                         meta: meta,
                         hooks: Y.mojito.debug.Utils.decycle(ac.debug.hooks)
