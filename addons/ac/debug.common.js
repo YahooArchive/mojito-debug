@@ -30,8 +30,10 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
 
         self.ac = ac;
         self.mode = ac.params.params.url.hasOwnProperty('debug') ? '' :
-                    ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
-                        ac.params.params.url.hasOwnProperty('debug.json') ? 'json' : null;
+                        ac.params.params.url.hasOwnProperty('debug.hide') ? 'hide' :
+                        ac.params.params.url.hasOwnProperty('debug.json') ? 'json' :
+                                !isBrowser && ac._adapter.req.url.indexOf('/debug') === 0 ? '' : null;
+
         self.timing = {
             client: {},
             server: {}
@@ -66,8 +68,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             });
 
             // Determine all the active hooks specified in the debug parameter.
-            // If no hook specified, use 'all' by default.
-            debugParam = ac.params.url('debug' + (self.mode ? '.' + self.mode : '')) || 'all';
+            // If no hook specified, use 'help' by default.
+            debugParam = ac.params.url('debug' + (self.mode ? '.' + self.mode : '')) || 'help';
             self.urlHooks = debugParam.split(/\s*,\s*/);
             Y.Array.each(self.urlHooks, function (hook) {
                 if (!hook) {

@@ -1,4 +1,6 @@
 <div id="{{mojit_view_id}}">
-    <iframe id="application"></iframe>
+    {{#if showApplication}}
+        <iframe id="application"></iframe>
+    {{/if}}
     <div id="debugger" class="debug-hidden"></div>
 </div>
