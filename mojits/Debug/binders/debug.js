@@ -11,7 +11,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
     'use strict';
 
     // Get access to the Mojito client.
-    var MojitoClient = {},
+    var DEBUG_PATH = '/debug',
+        DEBUG_TUNNEL_PATH = DEBUG_PATH + '/tunnel',
+        MojitoClient = {},
         mojitoClientConstructor = Y.mojito.Client;
 
     Y.mojito.Client = function (config) {
@@ -120,6 +122,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                                 command: command
                             }
                         },
+                        tunnelUrl: DEBUG_TUNNEL_PATH,
                         rpc: true
                     }, function (error, result, meta) {
                         try {
@@ -196,6 +199,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                                     options: options
                                 }
                             },
+                            tunnelPrefix: DEBUG_TUNNEL_PATH,
                             rpc: true
                         };
 
@@ -209,7 +213,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     } else {
                         return originalInvoke.call(proxy, action, options, callback);
                     }
-
                 });
             };
         },
