@@ -8,6 +8,7 @@
 }
 
 .debug-console-logs {
+    min-height: 180px;
     max-height: 400px;
     overflow: scroll;
     margin: 0;
