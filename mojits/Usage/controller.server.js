@@ -2,17 +2,22 @@
 YUI.add('UsageController', function (Y, NAME) {
     'use strict';
 
-    var MAX_SAVED_HEAPS = 10,
+    var DEBUG_TUNNEL_PATH = '/debug/tunnel',
+        MAX_SAVED_HEAPS = 10,
         HEAP_DUMP_NAME = 'heapdump-{time}.heapsnapshot',
         lib = {
             childProcess: require('child_process'),
             fs: require('fs')
         },
+        appConfig,
         heapdump = require('heapdump'),
         heapDumps = {};
 
     Y.namespace('mojito.controllers')[NAME] = {
         index: function (ac) {
+            if (this._denyTunnelRequest(ac)) {
+                return;
+            }
             ac.data.set('heapDumps', heapDumps);
             ac.done({
                 memory: 'mem'
@@ -20,6 +25,10 @@ YUI.add('UsageController', function (Y, NAME) {
         },
 
         createHeapDump: function (ac) {
+            if (this._denyTunnelRequest(ac)) {
+                return;
+            }
+
             var time = Date.now(),
                 dumpName = HEAP_DUMP_NAME.replace('{time}', time);
 
@@ -46,6 +55,9 @@ YUI.add('UsageController', function (Y, NAME) {
         },
 
         deleteHeapDump: function (ac) {
+            if (this._denyTunnelRequest(ac)) {
+                return;
+            }
             var time = ac.params.body('time');
             this._deleteHeapDump(time, function (error) {
                 ac.done(error || '');
@@ -53,6 +65,9 @@ YUI.add('UsageController', function (Y, NAME) {
         },
 
         downloadHeapDump: function (ac) {
+            if (this._denyTunnelRequest(ac)) {
+                return;
+            }
             var time = ac.params.url('time'),
                 dumpName = HEAP_DUMP_NAME.replace('{time}', time),
                 readStream,
@@ -120,11 +135,29 @@ YUI.add('UsageController', function (Y, NAME) {
                 }
                 return callback && callback(error);
             });
+        },
+
+        _denyTunnelRequest: function (ac) {
+            var req = ac.http.getRequest(),
+                res = ac.http.getResponse();
+
+            appConfig = appConfig || ac.config.getAppConfig({}) || {};
+            if (req.url === (appConfig.tunnel || '/tunnel')) {
+                clearTimeout(ac._timer);
+                ac._timer = null;
+                res.statusCode = 404;
+                res.setHeader('Content-Type', 'text/html');
+                res.end('Not Found');
+                Y.log('Denied non debug tunnel request from (' + req.connection.remoteAddress + ').', 'warn', NAME);
+                return true;
+            }
+            return false;
         }
     };
 
 }, '0.0.1', {
     requires: [
+        'mojito-config-addon',
         'mojito-data-addon',
         'mojito-http-addon',
         'mojito-params-addon'
