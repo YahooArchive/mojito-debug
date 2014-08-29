@@ -11,7 +11,9 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
     'use strict';
 
     // Get access to the Mojito client.
-    var MojitoClient = {},
+    var DEBUG_PATH = '/debug',
+        DEBUG_TUNNEL_PATH = DEBUG_PATH + '/tunnel',
+        MojitoClient = {},
         mojitoClientConstructor = Y.mojito.Client;
 
     Y.mojito.Client = function (config) {
@@ -33,7 +35,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
         init: function (mojitProxy) {
             this.debuggerNode = Y.one('#debugger');
             this.applicationNode = Y.one('#application');
-
             this._hookMojitProxy();
             this.mojitProxy = mojitProxy;
             this.initDebugger(mojitProxy);
@@ -47,21 +48,23 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             self._addWindowTiming();
 
-            self.app = new Y.mojito.debug.Application(self.applicationNode, self.debuggerNode, self.flushes, self.config.options['simulate-flushing'], function () {
-                var getElementById = window.document.getElementById,
-                    debuggerDocument = window.document,
-                    appDocument = self.app.window.document;
-                window.document.getElementById = function (id) {
-                    return getElementById.call(appDocument, id) || getElementById.call(debuggerDocument, id);
-                };
+            if (self.applicationNode) {
+                self.app = new Y.mojito.debug.Application(self.applicationNode, self.debuggerNode, self.flushes, self.config.options['simulate-flushing'], function () {
+                    var getElementById = window.document.getElementById,
+                        debuggerDocument = window.document,
+                        appDocument = self.app.window.document;
+                    window.document.getElementById = function (id) {
+                        return getElementById.call(appDocument, id) || getElementById.call(debuggerDocument, id);
+                    };
 
-                // Make sure that tunnel events by the application are handled by the debugger controller on the server.
-                if (self.app.window.YMojito) {
-                    self._hookRpc(self.app.window.YMojito.client);
-                }
-            });
-            if (self.mode === 'hide') {
-                self.debuggerNode.setStyle('display', 'block');
+                    // Make sure that tunnel events by the application are handled by the debugger controller on the server.
+                    if (self.app.window.YMojito) {
+                        self._hookRpc(self.app.window.YMojito.client);
+                    }
+                });
+            }
+            if (self.mode === 'hide' || !self.applicationNode) {
+                self.debuggerNode.removeClass('debug-hidden');
             }
 
             delete self.mojitProxy.data;
@@ -119,15 +122,21 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                                 command: command
                             }
                         },
+                        tunnelUrl: DEBUG_TUNNEL_PATH,
                         rpc: true
                     }, function (error, result, meta) {
-                        if (error) {
-                            return adapter.error(error);
+                        try {
+                            if (error) {
+                                return adapter.error(error);
+                            }
+                            self._updateHooks(Y.mojito.debug.Utils.retrocycle(result.hooks));
+                            adapter.callback(result.error || error, result.data, result.meta);
+                            Y.Debug.render();
+                        } catch (e) {
+                            setTimeout(function () {
+                                throw e;
+                            }, 0);
                         }
-                        self._updateHooks(Y.mojito.debug.Utils.retrocycle(result.hooks));
-                        adapter.callback(error, result.data, result.meta);
-
-                        Y.Debug.render();
                     });
                 } else {
                     adapter.error(new Error('RPC tunnel is not available in the [' +
@@ -190,6 +199,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                                     options: options
                                 }
                             },
+                            tunnelPrefix: DEBUG_TUNNEL_PATH,
                             rpc: true
                         };
 
@@ -203,7 +213,6 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     } else {
                         return originalInvoke.call(proxy, action, options, callback);
                     }
-
                 });
             };
         },
@@ -362,8 +371,12 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
             });
 
             if (/(\?|&)debug(\.[^&=]+)?=?($|&)/.test(window.location.href)) {
-                this.history.replaceValue('hooks', ['all'], {
-                    url: window.location.href.replace(/(\?|&)(debug(?:\.[^&=]+)?)(=)?($|&)/, '$1$2=all$4')
+                this.history.replaceValue('hooks', ['help'], {
+                    url: window.location.href.replace(/(\?|&)(debug(?:\.[^&=]+)?)(=)?($|&)/, '$1$2=help$4')
+                });
+            } else if (!/(\?|&)debug($|&|=)/.test(window.location.href)) {
+                this.history.replaceValue('hooks', ['help'], {
+                    url: window.location.href + (window.location.href.indexOf('?') === -1 ? '?' : '&') + 'debug=help'
                 });
             }
         },

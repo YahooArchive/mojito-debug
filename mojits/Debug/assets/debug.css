@@ -22,8 +22,9 @@ body {
     height: 0;
 }
 
-#debugger {
-    display: none;
+#debugger.debug-hidden {
+    visibility: hidden;
+    margin-left: -100%;
 }
 
 .no-select {
