@@ -9,7 +9,7 @@
 
 .debug-usage-cpu {
     float: left;
-    margin-right: 50px;
+    width: 180px
 }
 
 .debug-usage-memory {

@@ -2,7 +2,10 @@
 YUI.add('UsageBinderIndex', function (Y, NAME) {
     'use strict';
 
-    var HEAP_LIST = '.debug-usage-heap-list',
+    var UPDATE_RATE = 1000,
+        CPU_USAGE = '.debug-usage-cpu-usage',
+        MEMORY_USAGE = '.debug-usage-memory-usage',
+        HEAP_LIST = '.debug-usage-heap-list',
         HEAP_INFO = '.debug-usage-heap-info',
         HEAP_INFO_DATE = '.debug-usage-heap-date',
         HEAP_INFO_SIZE = '.debug-usage-heap-size',
@@ -20,6 +23,8 @@ YUI.add('UsageBinderIndex', function (Y, NAME) {
 
         bind: function (node) {
             this.node = node;
+            this.cpuUsage = node.one(CPU_USAGE);
+            this.memoryUsage = node.one(MEMORY_USAGE);
             this.heapList = node.one(HEAP_LIST);
             this.heapInfo = node.one(HEAP_INFO);
             this.heapInfoDate = node.one(HEAP_INFO_DATE);
@@ -29,6 +34,7 @@ YUI.add('UsageBinderIndex', function (Y, NAME) {
             node.one(CREATE_BUTTON).on('click', this.createHeapDump, this);
             node.one(DELETE_BUTTON).on('click', this.deleteHeapDump, this);
 
+            this.updateUsage(this.mp.data.get('usage'));
             this.initializeHeapDumps();
             this.updateHeapInfo();
         },
@@ -100,7 +106,7 @@ YUI.add('UsageBinderIndex', function (Y, NAME) {
             if (selectedHeap) {
                 data = JSON.parse(selectedHeap.get('value'));
                 this.heapInfoDate.set('text', Y.Date.format(new Date(data.time), {format: '%a, %b %e, %Y %l:%M:%S %p'}));
-                this.heapInfoSize.set('text', this.formatBytes(data.size));
+                this.heapInfoSize.set('text', this._formatBytes(data.size));
                 this.node.one(INFO_TIME_INPUT).set('value', data.time);
 
                 this.heapInfo.setStyle('display', 'block');
@@ -109,12 +115,30 @@ YUI.add('UsageBinderIndex', function (Y, NAME) {
             }
         },
 
+        updateUsage: function (usage) {
+            var self = this;
+
+            self.cpuUsage.set('text', self._trunckateDecimals(usage.cpu, 2) + '%');
+            self.memoryUsage.set('text', self._formatBytes(usage.memory, 2));
+
+            setTimeout(function () {
+                self.mp.invoke('updateUsage', function (error, usage, meta) {
+                    if (error === 'Unexpected end of input') {
+                        self.invokeError('Error updating usage information', error);
+                        return;
+                    }
+
+                    self.updateUsage(usage);
+                });
+            }, UPDATE_RATE);
+        },
+
         invokeError: function (message, error) {
             error = Y.Lang.isObject(error) ? 'error code ' + error.code : error;
             Y.Debug.error('usage', message + ': ' + error);
         },
 
-        formatBytes: function (bytes) {
+        _formatBytes: function (bytes) {
             var units = [
                     'b',
                     'Kb',
@@ -129,10 +153,14 @@ YUI.add('UsageBinderIndex', function (Y, NAME) {
                 unit++;
             }
 
-            // Limit to 2 decimal precision.
-            bytes = (Math.floor(bytes * 100) / 100);
+            bytes = this._trunckateDecimals(bytes, 2);
 
             return bytes + ' ' + units[unit];
+        },
+
+        _trunckateDecimals: function (num, numDecimals) {
+            var factor = Math.pow(10, numDecimals);
+            return Math.floor(num * factor) / factor;
         }
     };
 }, '0.0.1', {

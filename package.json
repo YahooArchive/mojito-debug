@@ -6,7 +6,8 @@
     "dependencies": {
         "ycb": "1.0.x",
         "mojito-waterfall": "0.0.x",
-        "heapdump": "0.2.x"
+        "heapdump": "0.2.x",
+        "usage": "0.4.x"
     },
     "devDependencies": {
         "mojito": "0.9.x",

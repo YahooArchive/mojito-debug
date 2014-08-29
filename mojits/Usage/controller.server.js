@@ -7,7 +7,8 @@ YUI.add('UsageController', function (Y, NAME) {
         HEAP_DUMP_NAME = 'heapdump-{time}.heapsnapshot',
         lib = {
             childProcess: require('child_process'),
-            fs: require('fs')
+            fs: require('fs'),
+            usage: require('usage')
         },
         appConfig,
         heapdump = require('heapdump'),
@@ -18,9 +19,10 @@ YUI.add('UsageController', function (Y, NAME) {
             if (this._denyTunnelRequest(ac)) {
                 return;
             }
-            ac.data.set('heapDumps', heapDumps);
-            ac.done({
-                memory: 'mem'
+            this._getUsage(function (usage) {
+                ac.data.set('heapDumps', heapDumps);
+                ac.data.set('usage', usage);
+                ac.done();
             });
         },
 
@@ -102,6 +104,23 @@ YUI.add('UsageController', function (Y, NAME) {
                     res.end('Error reading ' + dumpName);
                 });
                 readStream.pipe(res);
+            });
+        },
+
+        updateUsage: function (ac) {
+            if (this._denyTunnelRequest(ac)) {
+                return;
+            }
+            this._getUsage(function (usage) {
+                ac.http.setHeader('Content-type', 'application/json');
+                ac.done(JSON.stringify(usage));
+            });
+        },
+
+        _getUsage: function (cb) {
+            var pid = process.pid;
+            lib.usage.lookup(pid, function (err, result) {
+                return cb && cb(result || {});
             });
         },
 
