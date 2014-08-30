@@ -15,6 +15,8 @@ YUI.add('mojito-debug-console', function (Y, NAME) {
         this.tail = this.head;
         this.size = 0;
         this.sizeLimit = maxSize || MAX_SIZE;
+        this.stdOutWrite = process.stdout.write;
+        this.stdErrWrite = process.stderr.write;
     }
 
     Console.prototype = {
@@ -106,21 +108,25 @@ YUI.add('mojito-debug-console', function (Y, NAME) {
 
         hookConsole: function () {
             var self = this;
-            if (!self.stdOutWrite) {
-                self.stdOutWrite = process.stdout.write;
-                process.stdout.write = function (line) {
-                    self.log(line);
-                    self.stdOutWrite.apply(process.stdout, arguments);
-                };
-            }
+            self.enabled = true;
 
-            if (!self.stdErrWrite) {
-                self.stdErrWrite = process.stderr.write;
-                process.stderr.write = function (line) {
-                    self.log(line, true);
-                    self.stdErrWrite.apply(process.stderr, arguments);
-                };
-            }
+            process.stdout.write = function (line) {
+                self.log(line);
+                self.stdOutWrite.apply(process.stdout, arguments);
+            };
+
+            process.stderr.write = function (line) {
+                self.log(line, true);
+                self.stdErrWrite.apply(process.stderr, arguments);
+            };
+        },
+
+        unHookConsole: function () {
+            var self = this;
+            self.enabled = false;
+
+            process.stdout.write = self.stdOutWrite;
+            process.stderr.write = self.stdErrWrite;
         }
     };
 

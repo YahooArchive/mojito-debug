@@ -1,25 +1,35 @@
 <div id="{{{mojit_view_id}}}" class="debug-console">
     <pre class="debug-console-logs"></pre>
-    <div class="debug-console-menu">
+    <img src="/static/Console/assets/gear.png" class="debug-console-menu-gear no-select" draggable="false"/>
+    <span class="debug-console-scroll no-select">
+        <span class="debug-console-scroll-up">&#x25b2;</span>
+        <span class="debug-console-scroll-down">&#x25bc;</span>
+    </span>
+    <div class="debug-console-menu no-select">
+        <span class="debug-console-menu-close no-select">x</span>
         <h2>Console</h2>
         <div class="debug-console-options">
-            <span><input type="checkbox" checked>Enable</span>
-            <span><input type="checkbox"/>Show Line Numbers</span>
-            <span><input type="checkbox"/>Show Timestamps</span>
-            <span><input type="checkbox"/>Line Wrap</span>
+            <form class="debug-console-console-form">
+                <input id="enabled" name="enabled" type="checkbox"><label for="enabled">Enable</label>
+                <input id="showLineNumbers" name="showLineNumbers" type="checkbox"/><label for="showLineNumbers">Show Line Numbers</label>
+                <input id="showTimestamps" name="showTimestamps" type="checkbox"/><label for="showTimestamps">Show Timestamps</label>
+                <input id="lineWrap" name="lineWrap" type="checkbox"/><label for="lineWrap">Line Wrap</label>
+            </form>
         </div>
 
         <h2>YUI</h2>
         <div class="debug-console-options">
-            Set Log Level
-            <select>
-                <option selected>debug</option>
-                <option>mojito</option>
-                <option>info</option>
-                <option>warn</option>
-                <option>error</option>
-                <option>none</option>
-            </select>
+            <form class="debug-console-yui-form">
+                Set Log Level&nbsp;
+                <select name="logLevel">
+                    <option selected>debug</option>
+                    <option>mojito</option>
+                    <option>info</option>
+                    <option>warn</option>
+                    <option>error</option>
+                    <option>none</option>
+                </select>
+            </form>
         </div>
         <h2>Search</h2>
         <div class="debug-console-options">

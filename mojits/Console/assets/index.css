@@ -18,9 +18,19 @@
     font-size: 12px;
     border-radius: 0 0 5px 5px;
 }
+.debug-console-logs *::selection {
+    background: #9B9B9B; /* WebKit/Blink Browsers */
+}
+.debug-console-logs *::-moz-selection {
+    background: #9B9B9B; /* Gecko Browsers */
+}
 
 .debug-console-logs p {
     margin: 1px 0;
+    white-space: nowrap;
+}
+.debug-console.debug-console-line-wrap .debug-console-logs p {
+
     white-space: pre-wrap;
 }
 
@@ -34,6 +44,41 @@
     color: white;
     padding: 5px;
     border: 1px solid;
+    display: none;
+}
+.debug-console.debug-console-menu-open .debug-console-menu {
+    display: block;
+}
+
+.debug-console-menu-close {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    line-height: 0;
+    padding: 6px 3px;
+    margin: 4px;
+    border-radius: 4px;
+}
+.debug-console-menu-close:hover {
+    cursor: pointer;
+    border: 1px solid;
+    margin: 3px;
+}
+
+.debug-console-menu-gear {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin: 7px;
+    opacity: 0.7;
+    transition: opacity 500ms;
+}
+.debug-console-menu-gear:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+.debug-console.debug-console-menu-open .debug-console-menu-gear {
+    display: none;
 }
 
 .debug-console-options {
@@ -45,9 +90,49 @@
     margin-right: 5px;
 }
 
-.debug-console-options > span {
+.debug-console-options form > label {
     margin-right: 10px;
     white-space: nowrap;
+}
+
+.debug-console-scroll {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    margin: 7px;
+    opacity: 0.5;
+    color: rgb(170, 170, 170);
+    cursor: pointer;
+    transition: opacity 500ms;
+}
+.debug-console-scroll:hover {
+    opacity: 1;
+}
+.debug-console-scroll-up,
+.debug-console-scroll-down {
+    display: none;
+}
+.debug-console-scroll.debug-console-scrolled-down .debug-console-scroll-up,
+.debug-console-scroll.debug-console-scrolled-up .debug-console-scroll-down {
+    display: block;
+}
+
+.debug-console-num {
+    margin-right: 5px;
+    color: rgb(120, 126, 168);
+    display: none;
+}
+.debug-console.debug-console-show-num .debug-console-num {
+    display: inline;
+}
+
+.debug-console-time {
+    margin-right: 5px;
+    color: rgb(120, 126, 168);
+    display: none;
+}
+.debug-console.debug-console-show-time .debug-console-time {
+    display: inline;
 }
 
 
