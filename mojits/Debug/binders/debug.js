@@ -105,7 +105,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     command.rpc = false;
 
                     Y.log('Dispatching instance "' + (command.instance.base || '@' +
-                        command.instance.type) + '" through RPC tunnel.', 'info', NAME);
+                        command.instance.type) + '" through RPC tunnel.', 'debug', NAME);
 
                     params = window.location.search.substring(1).split('&');
                     Y.Array.each(params, function (param) {
