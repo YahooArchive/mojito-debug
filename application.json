@@ -7,6 +7,8 @@
             "type": "Debug",
             "config": {
                 "options": {
+                    "console-max-logs": 1000,
+                    "enable-console": true,
                     "simulate-flushing": false,
                     "estimate-latency": true,
                     "waterfall-window-performance": false

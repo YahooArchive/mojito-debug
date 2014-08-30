@@ -32,13 +32,19 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
     Y.extend(RSAddonDebug, Y.Plugin.Base, {
 
         initializer: function (config) {
+            var staticAppConfig = config.host.getStaticAppConfig(),
+                options;
+
             this.rs = config.host;
+            this.debugAppConfig = this.rs.config.readConfigYCB(APP_CONFIG_PATH, {runtime: 'server'});
 
-            this.overwriteAppConfig = false;
-
+            Y.mix(staticAppConfig, this.debugAppConfig, false, null, 0, true);
+            options = staticAppConfig.specs.debug.config.options;
             this.mergeAppConfig();
-            this.console = new Y.mojito.debug.Console(1000);
-            this.console.hookConsole();
+            this.console = new Y.mojito.debug.Console(options['console-max-logs']);
+            if (options['enable-console']) {
+                this.console.hookConsole();
+            }
         },
 
         mergeAppConfig: function () {
@@ -58,10 +64,9 @@ YUI.add('addon-rs-debug', function (Y, NAME) {
                 return;
             }
             modifiedAppConfig = Y.Do.originalRetVal;
-            debugAppConfig = this.rs.config.readConfigYCB(APP_CONFIG_PATH, ctx);
 
-            if (debugAppConfig) {
-                Y.mix(modifiedAppConfig, debugAppConfig, false, null, 0, true);
+            if (ctx.runtime === 'server') {
+                Y.mix(modifiedAppConfig, this.debugAppConfig, false, null, 0, true);
             }
 
             // Add debugger's routes.json to appConfig's routesFiles array.
