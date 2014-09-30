@@ -49,7 +49,7 @@ YUI.add('UsageController', function (Y, NAME) {
                     ac.done(JSON.stringify({
                         time: time,
                         size: stats && stats.size,
-                        error: error
+                        error: error.toString()
                     }));
                 });
 
