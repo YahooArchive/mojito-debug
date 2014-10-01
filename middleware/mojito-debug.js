@@ -21,7 +21,9 @@ module.exports = function (midConfig) {
         var appConfig = store.getAppConfig(req.context), url, key,
             originalUrl = req.url;
 
-        if (appConfig.specs.debug.enabled) {
+        // Check if the url has a debug parameter if the debugger is enabled
+        // and not already in debug mode.
+        if (appConfig.specs.debug.enabled && !req.debugging) {
 
             url = liburl.parse(req.url, true);
 
@@ -44,10 +46,10 @@ module.exports = function (midConfig) {
 
             if (req.url.indexOf(DEBUG_PATH) === 0) {
                 req.globals = req.globals || {};
-                req.globals['mojito-debug'] = {
-                    originalUrl: originalUrl,
-                    debugStart: process.hrtime()
-                };
+                req.globals['mojito-debug'] = req.globals['mojito-debug'] || {};
+                req.globals['mojito-debug'].enabled = true;
+                req.globals['mojito-debug'].originalUrl = originalUrl;
+                req.globals['mojito-debug'].debugStart = process.hrtime();
             }
         }
 
