@@ -15,7 +15,8 @@ module.exports = function (midConfig) {
         store = midConfig.store,
         DEBUG_PATH = '/debug',
         DEBUG_TUNNEL_PATH = DEBUG_PATH + '/tunnel',
-        DEBUG_PARAM_REGEXP = /^debug(\.[a-zA-Z0-9]+)?$/;
+        DEBUG_PARAM_REGEXP = /^debug(\.[a-zA-Z0-9]+)?$/,
+        dispatcher = require(midConfig.store._config.mojitoRoot + '/dispatcher.js');
 
     return function (req, res, next) {
         var appConfig = store.getAppConfig(req.context), url, key,
@@ -50,7 +51,31 @@ module.exports = function (midConfig) {
                 req.globals['mojito-debug'].enabled = true;
                 req.globals['mojito-debug'].originalUrl = originalUrl;
                 req.globals['mojito-debug'].debugStart = process.hrtime();
+
+                // This function allows another middleware to skip the execution of the remaining
+                // middleware in order to dispatch the debugger immediately.
+                req.globals['mojito-debug'].dispatch = function () {
+                    var command = {
+                        instance: {}
+                    };
+
+                    command.instance.base = 'debug';
+                    command.action = 'index';
+                    command.context = req.context;
+                    command.params = {
+                        route: Y.mix({}, req.params),
+                        url: req.query || {},
+                        body: req.body || {},
+                        file: {}
+                    };
+
+                    req.command = command;
+
+                    dispatcher.handleRequest(req, res);
+                };
             }
+        } else if (req.globals && req.globals['mojito-debug']) {
+            req.globals['mojito-debug'] = null;
         }
 
         next();
