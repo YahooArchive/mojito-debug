@@ -54,7 +54,14 @@ module.exports = function (midConfig) {
 
                 // This function allows another middleware to skip the execution of the remaining
                 // middleware in order to dispatch the debugger immediately.
-                req.globals['mojito-debug'].dispatch = function () {
+                req.globals['mojito-debug'].dispatch = function (req, res, next) {
+
+                    if (req.url.indexOf(DEBUG_TUNNEL_PATH) === 0) {
+                        // If this is a debug tunnel request then we cannot skip
+                        // the remaining middlewares.
+                        return next();
+                    }
+
                     var command = {
                         instance: {}
                     };
