@@ -376,7 +376,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                 this.history.replaceValue('hooks', ['help'], {
                     url: window.location.href.replace(/(\?|&)(debug(?:\.[^&=]+)?)(=)?($|&)/, '$1$2=help$4')
                 });
-            } else if (!/(\?|&)debug($|&|=)/.test(window.location.href)) {
+            } else if (!/(\?|&)debug(\.[^&=]+)?($|&|=)/.test(window.location.href)) {
                 this.history.replaceValue('hooks', ['help'], {
                     url: window.location.href + (window.location.href.indexOf('?') === -1 ? '?' : '&') + 'debug=help'
                 });
