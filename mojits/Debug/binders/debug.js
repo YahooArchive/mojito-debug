@@ -225,7 +225,7 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
 
             var self = this,
                 debuggerTiming = window.performance.timing,
-                totalResponseTime = debuggerTiming.responseEnd - debuggerTiming.requestStart, // ms
+                totalResponseTime = debuggerTiming.responseStart - debuggerTiming.requestStart, // ms
                 totalServerTime = (Y.Debug.timing.server.debugEnd - Y.Debug.timing.server.debugStart), // ms
                 latency = self.config.options['estimate-latency'] ? (totalResponseTime - totalServerTime) / 2 : 0; // ms
 
@@ -255,10 +255,12 @@ YUI.add('mojito-debug-binder', function (Y, NAME) {
                     clientLastFlushTime = Y.Debug.timing.client.lastFlush + debuggerTiming.navigationStart, // ms
                     serverFirstFlushTime = Y.Debug.timing.server.firstFlush, // ms
                     serverLastFlushTime = Y.Debug.timing.server.lastFlush, // ms
+                    appStartTime = Y.Debug.timing.server.appStart, // ms
+                    appEndTime = Y.Debug.timing.server.appEnd, // ms
                     serverStartTime = Y.Debug.timing.server.debugStart, // ms
                     clientRequestStart = debuggerTiming.requestStart, // ms
-                    // Time before the first flush should be shifted such that the client's request start matches the server's debug start time - estimated latency.
-                    beforeFirstFlushShift = -1 * clientRequestStart + serverStartTime - latency,
+                    // Time before the first flush should be shifted such that the client's request start matches the server's app start time - estimated latency.
+                    beforeFirstFlushShift = -1 * clientRequestStart + appStartTime - latency,
                     // Time at and after the last flush should be shifted such that the client's response end matches the server's last flush + the estimated latency.
                     afterLastFlushShift = -1 * debuggerTiming.responseEnd + serverFirstFlushTime + latency,
                     events = ['navigationStart', 'unloadEventStart', 'unloadEventEnd', 'redirectStart',
