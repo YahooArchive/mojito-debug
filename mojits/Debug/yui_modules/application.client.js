@@ -280,16 +280,13 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 this.opened = false;
             }
 
-            // Set iframe height to auto such that the document inside returns the correct scrollheight
-            if (this.opened) {
-                this.iframe.setStyle('height', 'auto');
+            if (anim) {
+                this.iframe.transition({
+                    easing: 'ease-out',
+                    duration: 0.3,
+                    height: this.opened ? this.window.document.documentElement.offsetHeight + 'px' : '0px'
+                });
             }
-
-            this.iframe.transition({
-                easing: 'ease-out',
-                duration: anim ? 0.3 : 0,
-                height: this.opened ? this.window.document.body.scrollHeight + 'px' : '0px'
-            });
 
             if (done) {
                 done();
@@ -298,7 +295,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             if (this.opened) {
                 this.timeout = setInterval(function () {
                     try {
-                        this.iframe.setStyle('height', this.window.document.body.scrollHeight + 'px');
+                        this.iframe.setStyle('height', this.window.document.documentElement.offsetHeight + 'px');
                     } catch (e) {
                         clearTimeout(this.timeout);
                     }
