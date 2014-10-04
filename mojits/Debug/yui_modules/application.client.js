@@ -76,6 +76,11 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 forceShow = false,
                 showDebugger = function () {
                     if (forceShow || loaded) {
+                        // Make sure that the application has been shown.
+                        if (Y.Debug.mode !== 'hide') {
+                            iframe.setStyle('height', window.document.documentElement.offsetHeight + 'px');
+                        }
+                        // Show debugger and make sure this function doesn't get called again.
                         self.debuggerNode.removeClass('debug-hidden');
                         Y.fire('debugger:displayed');
                         showDebugger = function () {};
