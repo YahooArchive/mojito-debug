@@ -28,10 +28,10 @@ YUI.add('mojito-debug-controller', function (Y, NAME) {
 
             ac.debug.timing.server.debugStart = req.globals['mojito-debug'].debugStart[0] * 1e3 + req.globals['mojito-debug'].debugStart[1] / 1e6;
 
-            Y.fire('application:start');
+            ac.debug.fire('application:start');
             self.runApplication(ac, function (err, flushes) {
 
-                Y.fire('application:end');
+                ac.debug.fire('application:end');
 
                 ac.debug.flushes = flushes;
                 self.runDebugger(ac, function (err, data, meta) {

@@ -39,6 +39,8 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             server: {}
         };
 
+        self._eventSubscriptions = {};
+
         // Do nothing if the debug parameter is not present.
         if (self.mode === null) {
             return;
@@ -98,6 +100,7 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
         self.error = self._error;
         self.clear = self._clear;
         self.get = self._get;
+        self.fire = self._fire;
     }
 
     DebugAddon.prototype = {
@@ -149,12 +152,38 @@ YUI.add('mojito-debug-addon', function (Y, NAME) {
             }.bind(this);
 
             if (event) {
-                return Y[once ? 'once' : 'on'](hook + ':' + event, callback);
+                return this._subscribe(type, callback, once);
             }
 
             this.hooks[hook]._modified = true;
 
             callback(this.hooks[hook].debugData, this.hooks[hook]);
+        },
+
+        _subscribe: function (event, callback, once) {
+            this._eventSubscriptions[event] = this._eventSubscriptions[event] || [];
+            this._eventSubscriptions[event].push({
+                callback: callback,
+                once: once
+            });
+        },
+
+        _fire: function (event) {
+            var subscribers = this._eventSubscriptions[event],
+                i = 0;
+
+            if (!subscribers) {
+                return;
+            }
+
+            while (i < subscribers.length) {
+                subscribers[i].callback.apply(null, arguments);
+                if (subscribers[i].once) {
+                    subscribers.splice(i, 1);
+                } else {
+                    i++;
+                }
+            }
         },
 
         _once: function (type, callback) {
