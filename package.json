@@ -8,6 +8,7 @@
         "mojito-waterfall": "0.0.x"
     },
     "devDependencies": {
+        "express": "3.5.x",
         "mojito": "0.9.x",
         "mojito-cli": "0.2.x",
         "istanbul": "*"
