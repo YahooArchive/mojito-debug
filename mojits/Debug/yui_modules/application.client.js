@@ -78,7 +78,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                     if (forceShow || loaded) {
                         // Make sure that the application has been shown.
                         if (Y.Debug.mode !== 'hide') {
-                            iframe.setStyle('height', window.document.documentElement.offsetHeight + 'px');
+                            iframe.setStyle('height', window.document.documentElement.scrollHeight + 'px');
                         }
                         // Show debugger and make sure this function doesn't get called again.
                         self.debuggerNode.removeClass('debug-hidden');
@@ -289,7 +289,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
                 this.iframe.transition({
                     easing: 'ease-out',
                     duration: 0.3,
-                    height: this.opened ? this.window.document.documentElement.offsetHeight + 'px' : '0px'
+                    height: this.opened ? this.window.document.documentElement.scrollHeight + 'px' : '0px'
                 });
             }
 
@@ -300,7 +300,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             if (this.opened) {
                 this.timeout = setInterval(function () {
                     try {
-                        this.iframe.setStyle('height', this.window.document.documentElement.offsetHeight + 'px');
+                        this.iframe.setStyle('height', this.window.document.documentElement.scrollHeight + 'px');
                     } catch (e) {
                         clearTimeout(this.timeout);
                     }
