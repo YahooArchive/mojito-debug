@@ -54,32 +54,28 @@ module.exports = function (midConfig) {
 
                 // This function allows another middleware to skip the execution of the remaining
                 // middleware in order to dispatch the debugger immediately.
-                req.globals['mojito-debug'].dispatch = function (req, res, next) {
+                if (req.url.indexOf(DEBUG_PATH + '/') === -1) {
+                    req.globals['mojito-debug'].dispatch = function (req, res, next) {
 
-                    if (req.url.indexOf(DEBUG_TUNNEL_PATH) === 0) {
-                        // If this is a debug tunnel request then we cannot skip
-                        // the remaining middlewares.
-                        return next();
-                    }
+                        var command = {
+                            instance: {}
+                        };
 
-                    var command = {
-                        instance: {}
+                        command.instance.base = 'debug';
+                        command.action = 'index';
+                        command.context = req.context;
+                        command.params = {
+                            route: Y.mix({}, req.params),
+                            url: req.query || {},
+                            body: req.body || {},
+                            file: {}
+                        };
+
+                        req.command = command;
+
+                        dispatcher.handleRequest(req, res);
                     };
-
-                    command.instance.base = 'debug';
-                    command.action = 'index';
-                    command.context = req.context;
-                    command.params = {
-                        route: Y.mix({}, req.params),
-                        url: req.query || {},
-                        body: req.body || {},
-                        file: {}
-                    };
-
-                    req.command = command;
-
-                    dispatcher.handleRequest(req, res);
-                };
+                }
             }
         } else if (req.globals && req.globals['mojito-debug']) {
             req.globals['mojito-debug'] = null;
