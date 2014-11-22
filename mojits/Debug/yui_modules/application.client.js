@@ -20,6 +20,10 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
         this.debuggerNode = debuggerNode;
         this.opened = Y.Debug.mode !== 'hide';
 
+        if (this.opened) {
+            self.open();
+        }
+
         self.window.document.open();
 
         Y.Array.each(flushes, function (flush, i) {
@@ -298,6 +302,7 @@ YUI.add('mojito-debug-application', function (Y, NAME) {
             }
 
             if (this.opened) {
+                clearTimeout(this.timeout);
                 this.timeout = setInterval(function () {
                     try {
                         this.iframe.setStyle('height', this.window.document.documentElement.scrollHeight + 'px');
